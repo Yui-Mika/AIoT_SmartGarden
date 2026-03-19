@@ -1,0 +1,12 @@
+# Local environment files
+.env.local
+.env.*.local
+
+# Common dependencies/build output
+node_modules/
+.next/
+dist/
+build/
+
+# Logs
+*.log
