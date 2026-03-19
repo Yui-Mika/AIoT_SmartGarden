@@ -2,6 +2,8 @@ import type { Metadata } from "next";
 import { Geist_Mono, Manrope, Playfair_Display } from "next/font/google";
 import "./globals.css";
 import AppHeader from "@/components/marketing/AppHeader";
+import AuthSessionProvider from "@/components/providers/AuthSessionProvider";
+import { Suspense } from "react";
 
 const manrope = Manrope({
   variable: "--font-manrope",
@@ -36,8 +38,12 @@ export default function RootLayout({
       className={`${manrope.variable} ${playfair.variable} ${geistMono.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col bg-slate-50 text-slate-900">
-        <AppHeader />
-        {children}
+        <AuthSessionProvider>
+          <Suspense fallback={null}>
+            <AppHeader />
+          </Suspense>
+          {children}
+        </AuthSessionProvider>
       </body>
     </html>
   );

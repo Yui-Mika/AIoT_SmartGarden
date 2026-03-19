@@ -5,57 +5,70 @@ import { sampleProducts } from "@/lib/mock-data";
 export default function Home() {
   return (
     <main className="flex-1 pb-16">
-      <section className="relative overflow-hidden px-4 pt-10 md:px-6 md:pt-16">
-        <div className="absolute -left-24 top-8 h-56 w-56 rounded-full bg-emerald-300/30 blur-3xl" />
-        <div className="absolute -right-16 top-0 h-56 w-56 rounded-full bg-sky-300/30 blur-3xl" />
-        <div className="mx-auto grid w-full max-w-6xl gap-8 md:grid-cols-[1.05fr_0.95fr] md:items-center">
-          <div className="animate-fade-up">
-            <p className="inline-flex rounded-full border border-emerald-200 bg-white/70 px-3 py-1 text-xs font-bold uppercase tracking-widest text-emerald-700">
-              Hydroponics • IoT • AI
-            </p>
-            <h1 className="mt-5 text-4xl font-black leading-tight text-slate-900 md:text-6xl">
-              Không chỉ trồng cây.
-              <br />
+      {/* Hero Section - Premium 100vh Full Video */}
+      <section className="relative flex h-screen w-full flex-col items-stretch justify-between overflow-hidden bg-black">
+        {/* Video Background */}
+        <video
+          autoPlay
+          muted
+          loop
+          playsInline
+          className="absolute inset-0 h-full w-full object-cover"
+        >
+          <source src="/videos/video_plant.mp4" type="video/mp4" />
+        </video>
+
+        {/* Gradient Overlay */}
+        <div className="absolute inset-0 bg-gradient-to-b from-slate-900/20 via-transparent to-slate-900/60" />
+
+        {/* Top Section - Left Aligned Logo + Tagline */}
+        <div className="relative z-20 space-y-2 px-6 pt-24 md:px-12 md:pt-32">
+          <div className="flex items-center gap-2">
+            <span className="text-2xl">🌿</span>
+            <span className="text-sm font-black uppercase tracking-[0.2em] text-white">ECO-TECH</span>
+          </div>
+          <div className="h-0.5 w-12 bg-white/30" />
+          <p className="text-xs font-semibold uppercase tracking-widest text-white/70">
+            Hydroponics • IoT • AI
+          </p>
+          <h1 className="mt-6 max-w-lg text-5xl font-black leading-tight text-white md:text-6xl lg:text-7xl">
+            Không chỉ<br />
+            trồng cây.
+          </h1>
+        </div>
+
+        {/* Bottom Section - Full Width Action Bar */}
+        <div className="relative z-20 flex items-end justify-center px-4 pb-12 md:pb-16">
+          <div className="w-full max-w-3xl rounded-2xl border border-white/25 bg-white/10 px-6 py-8 backdrop-blur-xl md:px-10 md:py-12">
+            <h2 className="text-2xl font-bold text-white md:text-3xl">
               Đây là khu vườn thông minh của bạn.
-            </h1>
-            <p className="mt-5 max-w-xl text-base leading-relaxed text-slate-600 md:text-lg">
+            </h2>
+            <p className="mt-3 max-w-2xl text-sm leading-relaxed text-white/80 md:text-base">
               Smart Garden AIoT kết hợp thiết kế e-commerce cao cấp với dashboard giám sát cây theo thời gian thực,
               cảnh báo thông minh và AI hỗ trợ chẩn đoán.
             </p>
-            <div className="mt-8 flex flex-wrap gap-3">
+            <div className="mt-6 flex flex-wrap gap-3">
               <Link
                 href="/products"
-                className="rounded-full bg-gradient-to-r from-orange-500 to-amber-500 px-6 py-3 text-sm font-bold text-white shadow-lg transition hover:scale-[1.02]"
+                className="rounded-lg bg-gradient-to-r from-orange-500 to-amber-500 px-6 py-3 text-sm font-bold text-white shadow-lg transition hover:shadow-xl hover:scale-105"
               >
                 Mua Bộ Smart Pot
               </Link>
               <Link
                 href="/dashboard"
-                className="rounded-full border border-emerald-200 bg-white px-6 py-3 text-sm font-bold text-emerald-700 transition hover:border-emerald-400"
+                className="rounded-lg border border-white/40 bg-white/10 px-6 py-3 text-sm font-bold text-white backdrop-blur-sm transition hover:bg-white/20"
               >
                 Xem Dashboard Demo
               </Link>
             </div>
           </div>
+        </div>
 
-          <div className="lux-panel animate-soft-float rounded-[2rem] p-6 md:p-7">
-            <div className="rounded-2xl bg-gradient-to-br from-emerald-600 to-cyan-600 p-5 text-white shadow-lg">
-              <p className="text-xs font-semibold uppercase tracking-[0.2em] text-white/80">Device Snapshot</p>
-              <h2 className="mt-2 text-2xl font-bold">My Basil Pot • Online</h2>
-              <div className="mt-4 grid grid-cols-2 gap-3 text-sm">
-                <div className="rounded-xl bg-white/15 p-3">TDS: 1150 ppm</div>
-                <div className="rounded-xl bg-white/15 p-3">pH: 6.2</div>
-                <div className="rounded-xl bg-white/15 p-3">Temp: 24.3°C</div>
-                <div className="rounded-xl bg-white/15 p-3">Humidity: 68%</div>
-              </div>
-            </div>
-            <div className="mt-5 space-y-2 text-sm text-slate-600">
-              <p className="font-semibold text-slate-800">Lợi thế nổi bật</p>
-              <p>• Cảnh báo đa cảm biến theo ngưỡng cá nhân hóa</p>
-              <p>• AI hỗ trợ chẩn đoán lá cây và gợi ý xử lý</p>
-              <p>• Điều khiển từ xa bơm nước và đèn trồng</p>
-            </div>
-          </div>
+        {/* Scroll Indicator */}
+        <div className="absolute bottom-4 left-1/2 z-20 -translate-x-1/2 animate-bounce">
+          <svg className="h-6 w-6 text-white/50" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 14l-7 7m0 0l-7-7m7 7V3" />
+          </svg>
         </div>
       </section>
 
