@@ -4,11 +4,15 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import { useSession, signOut } from "next-auth/react";
 import { ShoppingCart, User, LogOut } from "lucide-react";
+import { usePathname } from "next/navigation";
 
 export default function AppHeaderClient() {
   const [isScrolled, setIsScrolled] = useState(false);
   const { data: session } = useSession();
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const pathname = usePathname();
+  const isHome = pathname === "/";
+  const useSolidHeader = !isHome || isScrolled;
 
   useEffect(() => {
     // Check scroll position immediately on mount
@@ -25,19 +29,20 @@ export default function AppHeaderClient() {
   }, []);
 
   return (
-    <header
-      className={`sticky top-0 z-40 mx-4 mt-4 rounded-2xl transition-all duration-300 md:mx-6 ${
-        isScrolled
-          ? "border border-emerald-100 bg-white/95 backdrop-blur-xl shadow-md"
-          : "border border-white/25 bg-white/15 backdrop-blur-2xl"
-      }`}
-    >
-      <div className="mx-auto flex h-16 w-full max-w-7xl items-center justify-between px-4 md:px-6">
+    <header className="fixed inset-x-0 top-0 z-50 px-4 pt-4 md:px-6">
+      <div
+        className={`mx-auto w-full max-w-7xl rounded-2xl transition-all duration-300 ${
+          useSolidHeader
+            ? "border border-emerald-100 bg-white/95 backdrop-blur-xl shadow-md"
+            : "border border-white/25 bg-white/15 backdrop-blur-2xl"
+        }`}
+      >
+        <div className="flex h-16 w-full items-center justify-between px-4 md:px-6">
         {/* Logo */}
         <Link href="/" className="group flex items-center gap-2">
           <span
             className={`text-sm font-black uppercase tracking-[0.2em] transition-colors duration-300 ${
-              isScrolled ? "text-emerald-700" : "text-white/95"
+              useSolidHeader ? "text-emerald-700" : "text-white/95"
             } md:text-base`}
           >
             ECO-TECH
@@ -47,13 +52,13 @@ export default function AppHeaderClient() {
         {/* Navigation Menu */}
         <nav
           className={`flex items-center gap-1 text-sm font-semibold transition-colors duration-300 md:gap-2 ${
-            isScrolled ? "text-slate-700" : "text-white/90"
+            useSolidHeader ? "text-slate-700" : "text-white/90"
           }`}
         >
           <Link
             href="/"
             className={`rounded-lg px-3 py-2 transition ${
-              isScrolled
+              useSolidHeader
                 ? "hover:bg-emerald-50 hover:text-emerald-700"
                 : "hover:bg-white/20 hover:text-white"
             }`}
@@ -63,7 +68,7 @@ export default function AppHeaderClient() {
           <Link
             href="/products"
             className={`rounded-lg px-3 py-2 transition ${
-              isScrolled
+              useSolidHeader
                 ? "hover:bg-emerald-50 hover:text-emerald-700"
                 : "hover:bg-white/20 hover:text-white"
             }`}
@@ -73,7 +78,7 @@ export default function AppHeaderClient() {
           <Link
             href="/dashboard"
             className={`rounded-lg px-3 py-2 transition ${
-              isScrolled
+              useSolidHeader
                 ? "hover:bg-emerald-50 hover:text-emerald-700"
                 : "hover:bg-white/20 hover:text-white"
             }`}
@@ -83,7 +88,7 @@ export default function AppHeaderClient() {
           <Link
             href="/about"
             className={`rounded-lg px-3 py-2 transition ${
-              isScrolled
+              useSolidHeader
                 ? "hover:bg-emerald-50 hover:text-emerald-700"
                 : "hover:bg-white/20 hover:text-white"
             }`}
@@ -99,7 +104,7 @@ export default function AppHeaderClient() {
             <ShoppingCart
               size={20}
               className={`transition ${
-                isScrolled
+                useSolidHeader
                   ? "text-slate-700 hover:text-emerald-700"
                   : "text-white/90 hover:text-white"
               }`}
@@ -113,7 +118,7 @@ export default function AppHeaderClient() {
               <button
                 onClick={() => setIsDropdownOpen(!isDropdownOpen)}
                 className={`flex items-center gap-2 rounded-lg px-3 py-2 transition ${
-                  isScrolled
+                  useSolidHeader
                     ? "hover:bg-emerald-50 text-slate-700"
                     : "hover:bg-white/20 text-white/90"
                 }`}
@@ -154,7 +159,7 @@ export default function AppHeaderClient() {
             <Link
               href="/auth/login"
               className={`rounded-lg px-4 py-2 font-semibold text-white shadow-md transition ${
-                isScrolled
+                useSolidHeader
                   ? "bg-gradient-to-r from-emerald-600 to-emerald-500 hover:brightness-105"
                   : "bg-gradient-to-r from-orange-500 to-amber-500 hover:brightness-110"
               }`}
@@ -162,6 +167,7 @@ export default function AppHeaderClient() {
               Đăng nhập
             </Link>
           )}
+        </div>
         </div>
       </div>
     </header>
