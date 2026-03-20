@@ -11,6 +11,7 @@ export default function AppHeaderClient() {
   const { data: session } = useSession();
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const pathname = usePathname();
+  const isAdminRoute = pathname.startsWith("/admin");
   const isHome = pathname === "/";
   const useSolidHeader = !isHome || isScrolled;
 
@@ -27,6 +28,11 @@ export default function AppHeaderClient() {
     window.addEventListener("scroll", checkScroll);
     return () => window.removeEventListener("scroll", checkScroll);
   }, []);
+
+  // Hide the marketing navbar across admin pages.
+  if (isAdminRoute) {
+    return null;
+  }
 
   return (
     <header className="fixed inset-x-0 top-0 z-50 px-4 pt-4 md:px-6">
