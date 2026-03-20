@@ -49,3 +49,57 @@ export const sampleAlerts = [
   "Nhiệt độ môi trường 24.1°C, phù hợp tăng trưởng",
   "Lần chụp ảnh gần nhất: cây khỏe mạnh",
 ];
+
+export const sampleProductReviews: Record<
+  string,
+  Array<{ author: string; rating: number; content: string; verified: boolean; createdAt: string }>
+> = {
+  "hat-giong-cai-xanh": [
+    {
+      author: "Ngoc Anh",
+      rating: 5,
+      content: "Hat nay de trong, 4 ngay da thay cay len deu. Rat phu hop cho nguoi moi bat dau.",
+      verified: true,
+      createdAt: "2026-02-21",
+    },
+    {
+      author: "Hoang Minh",
+      rating: 4,
+      content: "Ti le nay mam tot, dong goi gon gang. Minh se mua lai cho vu tiep theo.",
+      verified: true,
+      createdAt: "2026-01-15",
+    },
+  ],
+  "dung-dich-a-b-500ml": [
+    {
+      author: "Khanh Linh",
+      rating: 5,
+      content: "Dung voi he NFT o nha rat on dinh, la xanh hon sau 1 tuan.",
+      verified: true,
+      createdAt: "2026-03-05",
+    },
+    {
+      author: "Tuan Kiet",
+      rating: 4,
+      content: "Huong dan pha de hieu, dung tich vua du cho nguoi choi nho le.",
+      verified: false,
+      createdAt: "2026-02-11",
+    },
+  ],
+  "chau-thong-minh-esp32": [
+    {
+      author: "Mai Thu",
+      rating: 5,
+      content: "Dashboard de xem, canh bao pH nhanh. Camera chup on dinh vao buoi toi.",
+      verified: true,
+      createdAt: "2026-03-12",
+    },
+    {
+      author: "Gia Bao",
+      rating: 5,
+      content: "Tu lap dat den ket noi app khoang 20 phut. Trai nghiem rat cao cap.",
+      verified: true,
+      createdAt: "2026-02-26",
+    },
+  ],
+};

@@ -4,7 +4,7 @@ import { sampleProducts } from "@/lib/mock-data";
 
 export default function Home() {
   return (
-    <main className="flex-1 pb-16">
+    <main className="flex-1">
       {/* Hero Section - Premium 100vh Full Video */}
       <section className="relative flex h-screen w-full flex-col items-stretch justify-between overflow-hidden bg-black">
         {/* Video Background */}
@@ -37,9 +37,9 @@ export default function Home() {
           </h1>
         </div>
 
-        {/* Bottom Section - Full Width Action Bar */}
-        <div className="relative z-20 flex items-end justify-center px-4 pb-12 md:pb-16">
-          <div className="w-full max-w-3xl rounded-2xl border border-white/25 bg-white/10 px-6 py-8 backdrop-blur-xl md:px-10 md:py-12">
+        {/* Bottom Section - Left Overlay Content */}
+        <div className="relative z-20 flex items-end justify-start px-6 pb-12 md:px-12 md:pb-16">
+          <div className="w-full max-w-2xl rounded-2xl border border-white/15 bg-transparent px-0 py-0">
             <h2 className="text-2xl font-bold text-white md:text-3xl">
               Đây là khu vườn thông minh của bạn.
             </h2>
@@ -141,6 +141,46 @@ export default function Home() {
           </div>
         </div>
       </section>
+
+      <footer className="mt-14 border-t border-slate-200 bg-white/90">
+        <div className="mx-auto grid w-full max-w-6xl gap-10 px-4 py-12 md:grid-cols-4 md:px-6">
+          <div className="md:col-span-2">
+            <p className="text-sm font-black uppercase tracking-[0.2em] text-emerald-700">ECO-TECH</p>
+            <p className="mt-3 max-w-md text-sm leading-relaxed text-slate-600">
+              Smart Garden AIoT giúp bạn trồng thủy canh tại nhà dễ dàng hơn với IoT realtime, cảnh báo thông minh
+              và trải nghiệm mua sắm thiết bị cao cấp.
+            </p>
+          </div>
+          <div>
+            <p className="text-sm font-bold text-slate-900">Khám phá</p>
+            <div className="mt-3 space-y-2 text-sm text-slate-600">
+              <Link href="/" className="block hover:text-emerald-700">
+                Trang chủ
+              </Link>
+              <Link href="/products" className="block hover:text-emerald-700">
+                Sản phẩm
+              </Link>
+              <Link href="/dashboard" className="block hover:text-emerald-700">
+                Dashboard
+              </Link>
+              <Link href="/about" className="block hover:text-emerald-700">
+                About Us
+              </Link>
+            </div>
+          </div>
+          <div>
+            <p className="text-sm font-bold text-slate-900">Liên hệ</p>
+            <div className="mt-3 space-y-2 text-sm text-slate-600">
+              <p>support@eco-tech.vn</p>
+              <p>+84 28 1234 5678</p>
+              <p>HCMC, Vietnam</p>
+            </div>
+          </div>
+        </div>
+        <div className="border-t border-slate-200 px-4 py-4 text-center text-xs text-slate-500 md:px-6">
+          © 2026 ECO-TECH. All rights reserved.
+        </div>
+      </footer>
     </main>
   );
 }
