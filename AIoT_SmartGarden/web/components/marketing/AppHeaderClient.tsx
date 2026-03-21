@@ -19,6 +19,7 @@ export default function AppHeaderClient() {
   const [isMobileOpen, setIsMobileOpen]     = useState(false);
   const { data: session }                   = useSession();
   const pathname                            = usePathname();
+  const isAdminRoute                        = pathname.startsWith("/admin");
   const dropdownRef                         = useRef<HTMLDivElement>(null);
 
   /* ---------- scroll detection ---------- */
@@ -40,14 +41,12 @@ export default function AppHeaderClient() {
     return () => document.removeEventListener("mousedown", handler);
   }, []);
 
-  /* ---------- close mobile menu on route change ---------- */
-  useEffect(() => {
-    setIsMobileOpen(false);
-    setIsDropdownOpen(false);
-  }, [pathname]);
-
   const isActive = (href: string) =>
     href === "/" ? pathname === "/" : pathname.startsWith(href);
+
+  if (isAdminRoute) {
+    return null;
+  }
 
   return (
     <>
@@ -206,6 +205,7 @@ export default function AppHeaderClient() {
                         href="/dashboard"
                         className="flex items-center gap-2.5 px-4 py-2.5 text-sm transition-colors duration-100"
                         style={{ color: "var(--text-secondary)" }}
+                        onClick={() => setIsDropdownOpen(false)}
                         onMouseEnter={(e) => {
                           (e.currentTarget as HTMLElement).style.color = "var(--text-primary)";
                           (e.currentTarget as HTMLElement).style.background = "rgba(255,255,255,0.04)";
@@ -223,6 +223,7 @@ export default function AppHeaderClient() {
                         href="/profile"
                         className="flex items-center gap-2.5 px-4 py-2.5 text-sm transition-colors duration-100"
                         style={{ color: "var(--text-secondary)" }}
+                        onClick={() => setIsDropdownOpen(false)}
                         onMouseEnter={(e) => {
                           (e.currentTarget as HTMLElement).style.color = "var(--text-primary)";
                           (e.currentTarget as HTMLElement).style.background = "rgba(255,255,255,0.04)";
@@ -264,7 +265,7 @@ export default function AppHeaderClient() {
 
               {/* Mobile menu toggle */}
               <button
-                className="btn-icon md:hidden"
+                className="btn-icon md:!hidden"
                 onClick={() => setIsMobileOpen((v) => !v)}
                 aria-label="Toggle menu"
               >
@@ -293,6 +294,7 @@ export default function AppHeaderClient() {
               <Link
                 key={href}
                 href={href}
+                onClick={() => setIsMobileOpen(false)}
                 className="rounded-xl px-4 py-3.5 text-base font-medium transition-all duration-150"
                 style={{
                   color: isActive(href) ? "var(--emerald-400)" : "var(--text-secondary)",
