@@ -1,7 +1,30 @@
+"use client";
+
 import Link from "next/link";
 import { ArrowRight, LayoutDashboard, Cpu } from "lucide-react";
+import { useEffect, useRef } from "react";
 
-export default function HomeHero() {
+type HomeHeroProps = {
+  shouldPlayVideo?: boolean;
+};
+
+export default function HomeHero({ shouldPlayVideo = true }: HomeHeroProps) {
+  const videoRef = useRef<HTMLVideoElement | null>(null);
+
+  useEffect(() => {
+    const video = videoRef.current;
+    if (!video) return;
+
+    if (shouldPlayVideo) {
+      void video.play().catch(() => {
+        // Silent catch: autoplay can still be blocked in some browsers.
+      });
+    } else {
+      video.pause();
+      video.currentTime = 0;
+    }
+  }, [shouldPlayVideo]);
+
   return (
     <section
       className="relative w-full overflow-hidden"
@@ -9,7 +32,7 @@ export default function HomeHero() {
     >
       {/* ── Video Background ── */}
       <video
-        autoPlay
+        ref={videoRef}
         muted
         loop
         playsInline

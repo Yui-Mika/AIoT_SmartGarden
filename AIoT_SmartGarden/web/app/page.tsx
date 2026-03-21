@@ -1,3 +1,6 @@
+"use client";
+
+import { useState } from "react";
 import Link from "next/link";
 import { ArrowRight, CheckCircle } from "lucide-react";
 import ProductCard from "@/components/marketing/ProductCard";
@@ -6,6 +9,7 @@ import HomeHero from "@/components/marketing/HomeHero";
 import BentoGrid from "@/components/marketing/BentoGrid";
 import TerminalCta from "@/components/marketing/TerminalCta";
 import SiteFooter from "@/components/marketing/SiteFooter";
+import LoadingScreen from "@/components/marketing/LoadingScreen";
 
 const TRUST_ITEMS = [
   "500+ vườn đang hoạt động",
@@ -16,9 +20,13 @@ const TRUST_ITEMS = [
 ];
 
 export default function Home() {
+  const [loadingDone, setLoadingDone] = useState(false);
+
   return (
     <main className="flex-1" style={{ background: "var(--bg-base)" }}>
-      <HomeHero />
+      {!loadingDone ? <LoadingScreen onComplete={() => setLoadingDone(true)} /> : null}
+
+      <HomeHero shouldPlayVideo={loadingDone} />
 
       {/* ── Stats Trust Bar ── */}
       <div
@@ -74,7 +82,7 @@ export default function Home() {
                 className="mb-2 font-mono text-xs font-semibold uppercase tracking-[0.15em]"
                 style={{ color: "var(--gold-400)" }}
               >
-                // HARDWARE STORE
+                {"// HARDWARE STORE"}
               </p>
               <h2
                 className="text-3xl font-bold leading-tight md:text-4xl"
