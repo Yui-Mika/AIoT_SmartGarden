@@ -1,7 +1,8 @@
 "use client";
 
+import { FormEvent, useState } from "react";
 import { signIn } from "next-auth/react";
-import { Leaf, ShieldCheck, Zap, Lock } from "lucide-react";
+import { Leaf, ShieldCheck, Zap, Lock, UserCog, LogIn, Mail, KeyRound } from "lucide-react";
 
 const FEATURES = [
   { icon: ShieldCheck, label: "Bảo mật OAuth 2.0" },
@@ -10,6 +11,36 @@ const FEATURES = [
 ];
 
 export default function LoginPage() {
+  const [mode, setMode] = useState<"customer" | "admin">("customer");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [adminError, setAdminError] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const isAdminMode = mode === "admin";
+
+  async function handleAdminLogin(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    setAdminError("");
+    setIsSubmitting(true);
+
+    const result = await signIn("credentials", {
+      email: email.trim(),
+      password: password.trim(),
+      callbackUrl: "/admin",
+      redirect: false,
+    });
+
+    setIsSubmitting(false);
+
+    if (!result || result.error) {
+      setAdminError("Đăng nhập admin thất bại. Kiểm tra email/password trong database hoặc reset lại mật khẩu admin.");
+      return;
+    }
+
+    window.location.href = result.url || "/admin";
+  }
+
   return (
     <main
       className="relative flex min-h-dvh w-full items-center justify-center overflow-hidden px-4 py-8"
@@ -68,7 +99,7 @@ export default function LoginPage() {
             className="mb-1 font-mono text-xs font-semibold uppercase tracking-[0.15em]"
             style={{ color: "var(--emerald-500)" }}
           >
-            // WELCOME BACK
+            {"// WELCOME BACK"}
           </p>
           <h1
             className="text-3xl font-bold"
@@ -77,8 +108,37 @@ export default function LoginPage() {
             Đăng nhập
           </h1>
           <p className="mt-2 text-sm" style={{ color: "var(--text-secondary)" }}>
-            Dùng tài khoản Google để truy cập dashboard và quản lý thiết bị.
+            Customer dùng Google OAuth, admin có thể đăng nhập bằng tài khoản đã tạo trong database.
           </p>
+
+          <div className="mt-6 grid grid-cols-2 gap-2 rounded-xl p-1" style={{ background: "var(--bg-overlay)" }}>
+            <button
+              type="button"
+              className="flex items-center justify-center gap-2 rounded-lg px-3 py-2 text-sm font-semibold transition-all"
+              style={{
+                background: !isAdminMode ? "rgba(16,185,129,0.20)" : "transparent",
+                color: !isAdminMode ? "var(--emerald-400)" : "var(--text-secondary)",
+                border: !isAdminMode ? "1px solid var(--border-emerald)" : "1px solid transparent",
+              }}
+              onClick={() => setMode("customer")}
+            >
+              <Leaf size={14} />
+              Customer
+            </button>
+            <button
+              type="button"
+              className="flex items-center justify-center gap-2 rounded-lg px-3 py-2 text-sm font-semibold transition-all"
+              style={{
+                background: isAdminMode ? "rgba(245,158,11,0.14)" : "transparent",
+                color: isAdminMode ? "var(--gold-400)" : "var(--text-secondary)",
+                border: isAdminMode ? "1px solid var(--border-gold)" : "1px solid transparent",
+              }}
+              onClick={() => setMode("admin")}
+            >
+              <UserCog size={14} />
+              Admin
+            </button>
+          </div>
 
           {/* Feature pills */}
           <div className="mt-6 flex flex-wrap gap-2">
@@ -101,59 +161,93 @@ export default function LoginPage() {
           {/* Divider */}
           <div className="divider-glow my-7" />
 
-          {/* Google sign-in button */}
-          <button
-            type="button"
-            onClick={() => signIn("google", { callbackUrl: "/auth/redirect" })}
-            className="group flex w-full items-center justify-center gap-3 rounded-xl px-5 py-3.5 font-semibold transition-all duration-150"
-            style={{
-              background: "var(--bg-overlay)",
-              border: "1px solid var(--border-normal)",
-              color: "var(--text-primary)",
-            }}
-            onMouseEnter={(e) => {
-              (e.currentTarget as HTMLElement).style.borderColor =
-                "var(--border-strong)";
-              (e.currentTarget as HTMLElement).style.background =
-                "rgba(255,255,255,0.05)";
-            }}
-            onMouseLeave={(e) => {
-              (e.currentTarget as HTMLElement).style.borderColor =
-                "var(--border-normal)";
-              (e.currentTarget as HTMLElement).style.background =
-                "var(--bg-overlay)";
-            }}
-          >
-            {/* Google icon */}
-            <svg viewBox="0 0 24 24" className="h-5 w-5 shrink-0" aria-hidden="true">
-              <path
-                d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
-                fill="#4285F4"
-              />
-              <path
-                d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"
-                fill="#34A853"
-              />
-              <path
-                d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"
-                fill="#FBBC05"
-              />
-              <path
-                d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"
-                fill="#EA4335"
-              />
-            </svg>
-            <span className="text-sm">Tiếp tục với Google</span>
-          </button>
+          {!isAdminMode ? (
+            <>
+              <button
+                type="button"
+                onClick={() => signIn("google", { callbackUrl: "/auth/redirect" })}
+                className="group flex w-full items-center justify-center gap-3 rounded-xl px-5 py-3.5 font-semibold transition-all duration-150"
+                style={{
+                  background: "var(--bg-overlay)",
+                  border: "1px solid var(--border-normal)",
+                  color: "var(--text-primary)",
+                }}
+                onMouseEnter={(e) => {
+                  (e.currentTarget as HTMLElement).style.borderColor =
+                    "var(--border-strong)";
+                  (e.currentTarget as HTMLElement).style.background =
+                    "rgba(255,255,255,0.05)";
+                }}
+                onMouseLeave={(e) => {
+                  (e.currentTarget as HTMLElement).style.borderColor =
+                    "var(--border-normal)";
+                  (e.currentTarget as HTMLElement).style.background =
+                    "var(--bg-overlay)";
+                }}
+              >
+                <svg viewBox="0 0 24 24" className="h-5 w-5 shrink-0" aria-hidden="true">
+                  <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4" />
+                  <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853" />
+                  <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05" />
+                  <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335" />
+                </svg>
+                <span className="text-sm">Tiếp tục với Google</span>
+              </button>
 
-          {/* Primary CTA */}
-          <button
-            type="button"
-            onClick={() => signIn("google", { callbackUrl: "/auth/redirect" })}
-            className="btn-emerald mt-3 w-full justify-center py-3.5 text-sm"
-          >
-            Đăng nhập ngay
-          </button>
+              <button
+                type="button"
+                onClick={() => signIn("google", { callbackUrl: "/auth/redirect" })}
+                className="btn-emerald mt-3 w-full justify-center py-3.5 text-sm"
+              >
+                Đăng nhập ngay
+              </button>
+            </>
+          ) : (
+            <form onSubmit={handleAdminLogin} className="space-y-3">
+              <div
+                className="flex items-center gap-2 rounded-xl px-4 py-3"
+                style={{ background: "var(--bg-overlay)", border: "1px solid var(--border-normal)" }}
+              >
+                <Mail size={14} style={{ color: "var(--text-muted)" }} />
+                <input
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder="admin@domain.com"
+                  className="w-full bg-transparent text-sm focus:outline-none"
+                  style={{ color: "var(--text-primary)" }}
+                  required
+                />
+              </div>
+
+              <div
+                className="flex items-center gap-2 rounded-xl px-4 py-3"
+                style={{ background: "var(--bg-overlay)", border: "1px solid var(--border-normal)" }}
+              >
+                <KeyRound size={14} style={{ color: "var(--text-muted)" }} />
+                <input
+                  type="password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  placeholder="Mật khẩu admin"
+                  className="w-full bg-transparent text-sm focus:outline-none"
+                  style={{ color: "var(--text-primary)" }}
+                  required
+                />
+              </div>
+
+              {adminError && (
+                <p className="text-xs font-medium" style={{ color: "#f87171" }}>
+                  {adminError}
+                </p>
+              )}
+
+              <button type="submit" disabled={isSubmitting} className="btn-gold mt-1 w-full justify-center py-3.5 text-sm">
+                <LogIn size={14} />
+                {isSubmitting ? "Đang đăng nhập..." : "Đăng nhập Admin"}
+              </button>
+            </form>
+          )}
 
           {/* Footer note */}
           <p
