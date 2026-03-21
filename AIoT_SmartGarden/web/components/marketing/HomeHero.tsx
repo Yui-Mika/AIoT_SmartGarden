@@ -1,15 +1,161 @@
 "use client";
 
-import Link from "next/link";
-import { ArrowRight, LayoutDashboard, Cpu } from "lucide-react";
-import { useEffect, useRef } from "react";
+import { useLayoutEffect, useEffect, useRef, useState } from "react";
+import gsap from "gsap";
+import { ScrollTrigger } from "gsap/ScrollTrigger";
 
 type HomeHeroProps = {
   shouldPlayVideo?: boolean;
 };
 
 export default function HomeHero({ shouldPlayVideo = true }: HomeHeroProps) {
+  const [isLoaded, setIsLoaded] = useState(false);
+  const heroRef = useRef<HTMLElement | null>(null);
   const videoRef = useRef<HTMLVideoElement | null>(null);
+  const overlayRef = useRef<HTMLDivElement | null>(null);
+  const titleRef = useRef<HTMLHeadingElement | null>(null);
+  const sloganRef = useRef<HTMLParagraphElement | null>(null);
+  const indicatorRef = useRef<HTMLDivElement | null>(null);
+
+  useEffect(() => {
+    setIsLoaded(true);
+  }, []);
+
+  useLayoutEffect(() => {
+    if (!isLoaded) return;
+
+    gsap.registerPlugin(ScrollTrigger);
+
+    const hero = heroRef.current;
+    const video = videoRef.current;
+    const overlay = overlayRef.current;
+    const title = titleRef.current;
+    const slogan = sloganRef.current;
+    const indicator = indicatorRef.current;
+    if (!hero || !video || !overlay || !title || !slogan) return;
+
+    const ctx = gsap.context(() => {
+      window.scrollTo(0, 0);
+      ScrollTrigger.refresh();
+
+      gsap.set(video, { scale: 1, transformOrigin: "center center" });
+      gsap.set(overlay, { opacity: 0.3 });
+      gsap.set(title, { autoAlpha: 0, visibility: "hidden", y: 40, filter: "blur(20px)" });
+      gsap.set(slogan, { autoAlpha: 0, visibility: "hidden", y: 40, filter: "blur(20px)" });
+
+      let step = 0;
+      let isAnimating = false;
+      let isReleased = false;
+      let wheelObserver: { enable: () => void; disable: () => void } | null = null;
+
+      const mediaTl = gsap.timeline({
+        paused: true,
+        defaults: { ease: "power3.out", duration: 1 },
+        onStart: () => {
+          isAnimating = true;
+        },
+        onComplete: () => {
+          isAnimating = false;
+          step = 1;
+        },
+        onReverseComplete: () => {
+          isAnimating = false;
+          step = 0;
+        },
+      });
+
+      mediaTl
+        .to(video, { scale: 1.2 }, 0)
+        .to(overlay, { opacity: 0.9 }, 0)
+        .to(indicator, { autoAlpha: 0, duration: 0.3 }, 0);
+
+      const textTl = gsap.timeline({
+        paused: true,
+        defaults: { ease: "power3.out", duration: 1.2 },
+        onStart: () => {
+          isAnimating = true;
+        },
+        onComplete: () => {
+          isAnimating = false;
+          step = 2;
+          isReleased = true;
+          wheelObserver?.disable();
+          window.requestAnimationFrame(() => {
+            window.scrollTo({ top: pinST.end + 2, behavior: "smooth" });
+          });
+        },
+        onReverseComplete: () => {
+          isAnimating = false;
+          step = 1;
+          isReleased = false;
+        },
+      });
+
+      textTl
+        .to(title, { autoAlpha: 1, visibility: "visible", y: 0, filter: "blur(0px)" }, 0)
+        .to(slogan, { autoAlpha: 1, visibility: "visible", y: 0, filter: "blur(0px)" }, 0.25);
+
+      const pinST = ScrollTrigger.create({
+        trigger: hero,
+        start: "top top",
+        end: "+=140%",
+        pin: true,
+        anticipatePin: 1,
+        scrub: false,
+        onEnter: () => {
+          if (!isReleased) wheelObserver?.enable();
+        },
+        onEnterBack: () => {
+          wheelObserver?.enable();
+        },
+        onLeave: () => {
+          wheelObserver?.disable();
+        },
+        onLeaveBack: () => {
+          wheelObserver?.disable();
+        },
+      });
+
+      wheelObserver = ScrollTrigger.observe({
+        target: window,
+        type: "wheel,touch,scroll",
+        tolerance: 8,
+        preventDefault: true,
+        onDown: () => {
+          if (!pinST.isActive || isAnimating) return;
+          if (step === 0) {
+            mediaTl.play();
+            return;
+          }
+          if (step === 1) {
+            textTl.play();
+          }
+        },
+        onUp: () => {
+          if (!pinST.isActive || isAnimating) return;
+          if (step === 2) {
+            wheelObserver?.enable();
+            textTl.reverse();
+            return;
+          }
+          if (step === 1) {
+            mediaTl.reverse();
+          }
+        },
+      });
+
+      wheelObserver.disable();
+
+      // Ensure first wheel works immediately when hero starts pinned at top.
+      if (pinST.isActive && !isReleased) {
+        wheelObserver.enable();
+      }
+    }, hero);
+
+    return () => {
+      ctx.revert();
+    };
+  }, [isLoaded]);
 
   useEffect(() => {
     const video = videoRef.current;
@@ -27,134 +173,52 @@ export default function HomeHero({ shouldPlayVideo = true }: HomeHeroProps) {
 
   return (
     <section
+      ref={heroRef}
       className="relative w-full overflow-hidden"
       style={{ minHeight: "100dvh" }}
     >
-      {/* ── Video Background ── */}
       <video
         ref={videoRef}
         muted
         loop
         playsInline
-        className="absolute inset-0 h-full w-full object-cover"
+        className="absolute inset-0 h-full w-full object-cover will-change-transform"
+        style={{ willChange: "transform, opacity, filter" }}
       >
         <source src="/videos/video_plant.mp4" type="video/mp4" />
       </video>
 
-      {/* ── Gradient Overlay ── */}
       <div
+        ref={overlayRef}
         className="absolute inset-0"
         style={{
-          background:
-            "linear-gradient(to bottom, rgba(9,9,11,0.65) 0%, rgba(9,9,11,0.40) 35%, rgba(9,9,11,0.75) 75%, #09090B 100%)",
+          opacity: 0.3,
+          willChange: "opacity, transform, filter",
+          background: "linear-gradient(to bottom, rgba(9,9,11,0.50), rgba(9,9,11,0.78), #09090B)",
         }}
       />
 
-      {/* ── Ambient glow blobs ── */}
       <div
-        className="pointer-events-none absolute bottom-0 left-0 h-[600px] w-[600px] -translate-x-1/3 translate-y-1/3 rounded-full blur-3xl"
-        style={{ background: "rgba(16,185,129,0.07)" }}
-      />
-      <div
-        className="pointer-events-none absolute right-0 top-1/4 h-[400px] w-[400px] translate-x-1/3 rounded-full blur-3xl"
-        style={{ background: "rgba(59,130,246,0.05)" }}
-      />
-
-      {/* ── Main content — 2-col split ── */}
-      <div
-        className="relative z-20 mx-auto flex w-full max-w-7xl flex-col justify-center px-6 md:px-12"
-        style={{ minHeight: "100dvh", paddingTop: "7rem", paddingBottom: "4rem" }}
+        className="pointer-events-none absolute inset-0 z-20 flex flex-col items-center justify-center px-6 text-center"
       >
+        <h1
+          ref={titleRef}
+          className="text-6xl font-black uppercase tracking-[0.28em] text-white md:text-7xl lg:text-8xl"
+          style={{ opacity: 0, visibility: "hidden", transform: "translateY(30px)", filter: "blur(15px)", willChange: "transform, opacity, filter" }}
+        >
+          ECO-TECH
+        </h1>
 
-        {/* ════════════════════════════
-            LEFT — Text content
-        ════════════════════════════ */}
-        <div className="flex flex-col">
-
-          {/* Status badge */}
-          <div
-            className="mb-6 inline-flex w-fit animate-fade-in items-center gap-2 rounded-full px-4 py-1.5"
-            style={{
-              background: "rgba(16,185,129,0.10)",
-              border: "1px solid rgba(16,185,129,0.25)",
-            }}
-          >
-            <span className="status-dot status-online" style={{ width: 6, height: 6 }} />
-            <span
-              className="font-mono text-xs font-semibold uppercase tracking-[0.15em]"
-              style={{ color: "var(--emerald-400)" }}
-            >
-              System Online — AIoT v2.0
-            </span>
-          </div>
-
-          {/* Headline */}
-          <h1
-            className="animate-fade-up text-5xl font-black leading-[1.06] tracking-tight md:text-6xl lg:text-7xl"
-            style={{ animationDelay: "80ms" }}
-          >
-            <span style={{ color: "var(--text-primary)" }}>Tương lai </span>
-            <br />
-            <span className="text-gradient-hero">của mảng xanh.</span>
-          </h1>
-
-          {/* Description */}
-          <p
-            className="animate-fade-up mt-5 max-w-lg text-sm leading-relaxed md:text-base"
-            style={{ color: "var(--text-secondary)", animationDelay: "180ms" }}
-          >
-            Hệ sinh thái Smart Garden kết nối vạn vật — giám sát môi trường
-            realtime, phân tích hình ảnh bằng AI và tự động hóa toàn bộ
-            quá trình sinh trưởng.
-          </p>
-
-          {/* CTA buttons */}
-          <div
-            className="animate-fade-up mt-8 flex flex-wrap gap-3"
-            style={{ animationDelay: "280ms" }}
-          >
-            <Link href="/dashboard" className="btn-emerald gap-2 px-6 py-3 text-sm">
-              <LayoutDashboard size={15} />
-              Truy cập Dashboard
-              <ArrowRight size={13} />
-            </Link>
-            <Link href="/products" className="btn-ghost gap-2 px-6 py-3 text-sm">
-              <Cpu size={15} />
-              Khám phá thiết bị
-            </Link>
-          </div>
-
-          {/* Stats strip */}
-          <div
-            className="animate-fade-up mt-10 flex flex-wrap gap-8"
-            style={{
-              animationDelay: "380ms",
-              borderTop: "1px solid rgba(255,255,255,0.06)",
-              paddingTop: "1.5rem",
-            }}
-          >
-            {[
-              { value: "99.9%",  label: "Uptime" },
-              { value: "<200ms", label: "Latency" },
-              { value: "6+",     label: "Sensors" },
-              { value: "24/7",   label: "Monitoring" },
-            ].map(({ value, label }) => (
-              <div key={label}>
-                <p className="text-xl font-black" style={{ color: "var(--text-primary)" }}>
-                  {value}
-                </p>
-                <p className="mt-0.5 text-xs" style={{ color: "var(--text-muted)" }}>
-                  {label}
-                </p>
-              </div>
-            ))}
-          </div>
-        </div>
-
+        <p
+          ref={sloganRef}
+          className="mt-6 max-w-3xl text-sm font-medium uppercase tracking-[0.2em] text-zinc-200 md:text-base"
+          style={{ opacity: 0, visibility: "hidden", transform: "translateY(30px)", filter: "blur(15px)", willChange: "transform, opacity, filter" }}
+        >
+          Where Nature Meets Intelligent Automation
+        </p>
       </div>
 
-      {/* ── Scroll indicator ── */}
-      <div className="absolute bottom-6 left-1/2 z-20 -translate-x-1/2">
+      <div ref={indicatorRef} className="absolute bottom-6 left-1/2 z-30 -translate-x-1/2">
         <div
           className="h-14 w-px animate-pulse"
           style={{
