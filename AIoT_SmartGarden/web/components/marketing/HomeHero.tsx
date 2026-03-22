@@ -3,8 +3,9 @@
 import { useEffect, useRef, useId } from "react";
 import gsap from "gsap";
 import { useGSAP } from "@gsap/react";
+import ScrollTrigger from "gsap/ScrollTrigger";
 
-gsap.registerPlugin(useGSAP);
+gsap.registerPlugin(useGSAP, ScrollTrigger);
 
 type HomeHeroProps = {
   isLoaded?: boolean;
@@ -15,6 +16,7 @@ export default function HomeHero({ isLoaded = false, shouldPlayVideo = true }: H
   const filterId = useId().replace(/:/g, "");
   const heroRef = useRef<HTMLElement | null>(null);
   const videoRef = useRef<HTMLVideoElement | null>(null);
+  const galaxyRef = useRef<HTMLDivElement | null>(null);
   const plexusRef = useRef<HTMLDivElement | null>(null);
   const plexusGlowRef = useRef<HTMLDivElement | null>(null);
   const titleWrapRef = useRef<HTMLHeadingElement | null>(null);
@@ -22,6 +24,7 @@ export default function HomeHero({ isLoaded = false, shouldPlayVideo = true }: H
   const ecoRef = useRef<SVGTextElement | null>(null);
   const techRef = useRef<SVGTextElement | null>(null);
   const svgTitleRef = useRef<SVGSVGElement | null>(null);
+  const finalTitleRef = useRef<HTMLHeadingElement | null>(null);
   const introIncludedVideoFadeRef = useRef(false);
   const shouldPlayVideoRef = useRef(shouldPlayVideo);
   shouldPlayVideoRef.current = shouldPlayVideo;
@@ -38,6 +41,7 @@ export default function HomeHero({ isLoaded = false, shouldPlayVideo = true }: H
       }
 
       const video = videoRef.current;
+      const galaxy = galaxyRef.current;
       const plexus = plexusRef.current;
       const plexusGlow = plexusGlowRef.current;
       const titleWrap = titleWrapRef.current;
@@ -45,20 +49,28 @@ export default function HomeHero({ isLoaded = false, shouldPlayVideo = true }: H
       const eco = ecoRef.current;
       const tech = techRef.current;
       const svgTitle = svgTitleRef.current;
+      const finalTitle = finalTitleRef.current;
+
       if (
         !video ||
+        !galaxy ||
         !plexus ||
         !plexusGlow ||
         !titleWrap ||
         !slogan ||
         !eco ||
         !tech ||
-        !svgTitle
+        !svgTitle ||
+        !finalTitle
       ) {
         return;
       }
 
+      // Khoá toàn bộ trình duyệt tránh cuộn khi đang chạy Intro
+      document.documentElement.style.overflow = "hidden";
+      document.documentElement.style.height = "100%";
       document.body.style.overflow = "hidden";
+      document.body.style.height = "100%";
 
       /** Hero hiện ngay (nền đen); title ẩn cho đến 0.5s */
       gsap.set(hero, { visibility: "visible", opacity: 1 });
@@ -71,10 +83,15 @@ export default function HomeHero({ isLoaded = false, shouldPlayVideo = true }: H
         filter: "blur(8px)",
         transformOrigin: "center center",
       });
+      
+      gsap.set(galaxy, { opacity: 0, visibility: "hidden", autoAlpha: 0 });
       gsap.set(slogan, { opacity: 0, visibility: "hidden", y: 20 });
       gsap.set(titleWrap, { opacity: 0, visibility: "hidden" });
       gsap.set(plexus, { opacity: 0, scale: 1, transformOrigin: "center center" });
       gsap.set(plexusGlow, { opacity: 0 });
+
+      // Cài đặt cho tiêu đề "Trí tuệ nhân tạo..." ẩn hoàn toàn và mờ
+      gsap.set(finalTitle, { autoAlpha: 0, filter: "blur(10px)", scale: 0.8 });
 
       /** Layer 2 (TECH): Setup stroke - initially hidden but stroke prepared */
       gsap.set(tech, {
@@ -89,113 +106,133 @@ export default function HomeHero({ isLoaded = false, shouldPlayVideo = true }: H
         y: -10,
       });
 
-      const tl = gsap.timeline({ paused: true });
+      // ---------------------------------------------------------
+      // 1. TIMELINE INTRO (GIỚI THIỆU & VẼ CHỮ ECO-TECH)
+      // ---------------------------------------------------------
+
+      let scrollTl: gsap.core.Timeline;
+
+      const unlockScroll = () => {
+        document.documentElement.style.overflow = "";
+        document.documentElement.style.height = "";
+        document.body.style.overflow = "";
+        document.body.style.height = "";
+        
+        // 2. Tháo xích cho ScrollTrigger Portal
+        if (scrollTl && scrollTl.scrollTrigger) {
+          scrollTl.scrollTrigger.enable();
+        }
+        
+        // 3. Ép GSAP tính toán lại toàn bộ tọa độ
+        ScrollTrigger.refresh();
+      };
+
+      const introTl = gsap.timeline({ 
+        paused: true,
+        onComplete: unlockScroll
+      });
 
       /** 0.5s: màn đen đã hiện; hiện vùng title để vẽ */
-      tl.set(titleWrap, { autoAlpha: 1 }, 0.5);
+      introTl.set(titleWrap, { autoAlpha: 1 }, 0.5);
 
       /** Phase 1: 0.6s - bắt đầu vẽ viền TECH (2.5s) */
-      tl.to(
+      introTl.to(
         tech,
-        {
-          strokeDashoffset: 0,
-          duration: 2.5,
-          ease: "power2.inOut",
-        },
+        { strokeDashoffset: 0, duration: 2.5, ease: "power2.inOut" },
         0.6
       );
 
       /** Phase 2: Ngay khi vẽ xong viền (0.6 + 2.5 = 3.1s) - Converge ECO */
-      tl.to(
+      introTl.to(
         eco,
-        {
-          opacity: 1,
-          y: 0,
-          duration: 0.8,
-          ease: "power2.out",
-        },
+        { opacity: 1, y: 0, duration: 0.8, ease: "power2.out" },
         3.1
       );
 
       /** Phase 3: Slogan hiện lên sau khi ECO rõ nét (bắt đầu sau 3.9s) */
-      tl.to(
+      introTl.to(
         slogan,
-        {
-          autoAlpha: 1,
-          y: 0,
-          duration: 0.65,
-          ease: "power2.out",
-        },
+        { autoAlpha: 1, y: 0, duration: 0.65, ease: "power2.out" },
         3.9
       );
 
-      /** 3.5s: Video Background mờ dần hiện ra; scroll mở sau khi video đã hiện */
+      /** 4.5s: Video Background mờ dần hiện ra; scroll mở sau khi video đã hiện */
       const playVideo = shouldPlayVideoRef.current;
-      const unlockScroll = () => {
-        document.body.style.overflow = "auto";
-      };
 
       if (playVideo) {
         introIncludedVideoFadeRef.current = true;
-        tl.to(
+        introTl.to(
           video,
-          {
-            autoAlpha: 0.4,
-            filter: "blur(2px)",
-            scale: 1.02,
-            duration: 1.15,
-            ease: "sine.out",
-            onComplete: unlockScroll,
-          },
+          { autoAlpha: 0.4, filter: "blur(2px)", scale: 1.02, duration: 1.15, ease: "sine.out" },
           4.5
-        );
-        tl.to(
-          plexus,
-          {
-            opacity: 0.22,
-            scale: 1.2,
-            duration: 1.05,
-            ease: "sine.out",
-          },
-          4.5
-        );
-        tl.to(
-          plexusGlow,
-          {
-            opacity: 0.45,
-            duration: 0.9,
-            ease: "sine.out",
-          },
-          4.62
-        );
-      } else {
-        tl.to(
-          plexus,
-          {
-            opacity: 0.22,
-            scale: 1.2,
-            duration: 1.05,
-            ease: "sine.out",
-            onComplete: unlockScroll,
-          },
-          4.5
-        );
-        tl.to(
-          plexusGlow,
-          {
-            opacity: 0.45,
-            duration: 0.9,
-            ease: "sine.out",
-          },
-          4.62
         );
       }
+      
+      introTl.to(
+        plexus,
+        { opacity: 0.22, scale: 1.2, duration: 1.05, ease: "sine.out" },
+        4.5
+      );
+      introTl.to(
+        plexusGlow,
+        { opacity: 0.45, duration: 0.9, ease: "sine.out" },
+        4.62
+      );
 
-      tl.play();
+      introTl.play();
+
+      // ---------------------------------------------------------
+      // 2. TIMELINE PORTAL (CÚ ZOOM KHI CUỘN)
+      // ---------------------------------------------------------
+
+      // Set tâm scale nằm đúng giữa chữ O của chữ ECO. 
+      // Do SVG là 800x300 và ECO được đặt ở giữa, tâm 50% là lý tưởng.
+      gsap.set(eco, { transformOrigin: "50% 50%" });
+
+      scrollTl = gsap.timeline({
+        paused: true,
+        scrollTrigger: {
+          trigger: hero,
+          pin: true,
+          start: "top top",
+          end: "+=400%",
+          scrub: 1.5,
+        }
+      });
+      
+      // 1. Vô hiệu hóa lúc khởi tạo (Disable on Init)
+      if (scrollTl.scrollTrigger) {
+        scrollTl.scrollTrigger.disable();
+      }
+
+      // Tỉ lệ thời gian (0 -> 1) cho Timeline
+
+      // Giai đoạn 1 (0% -> 20%): Chữ TECH & Slogan mờ đi
+      scrollTl.to([tech, slogan], { autoAlpha: 0, duration: 0.2, ease: "power1.inOut", immediateRender: false }, 0);
+
+      // Giai đoạn 2 (20% -> 70%): The Deep Zoom (Phóng lớn chữ ECO)
+      scrollTl.to(eco, { scale: 150, duration: 0.5, ease: "power2.in", immediateRender: false }, 0.2);
+
+      // Background Swap (40% -> 60%): Khi đoạn scale làm chữ trắng sắp che kín mặt
+      scrollTl.to(video, { autoAlpha: 0, duration: 0.2, ease: "none", immediateRender: false }, 0.4);
+      scrollTl.to(galaxy, { autoAlpha: 1, duration: 0.2, ease: "none", immediateRender: false }, 0.4);
+
+      // Chữ ECO hoàn thành sứ mệnh cổng portal -> Xóa (60% -> 70%)
+      scrollTl.to(eco, { opacity: 0, duration: 0.1, ease: "none", immediateRender: false }, 0.6);
+
+      // Mờ plexus hiện tại luôn để tập trung vào lớp Không Gian Galaxy bên dưới
+      scrollTl.to([plexus, plexusGlow], { autoAlpha: 0, duration: 0.2, ease: "power1.out", immediateRender: false }, 0.6);
+
+      // Giai đoạn 3 (70% -> 100%): The Convergence (Chữ triết lý mờ tỏ)
+      scrollTl.to(finalTitle, { autoAlpha: 1, filter: "blur(0px)", scale: 1, duration: 0.3, ease: "power3.out", immediateRender: false }, 0.7);
 
       return () => {
+        document.documentElement.style.overflow = "";
+        document.documentElement.style.height = "";
         document.body.style.overflow = "";
-        tl.kill();
+        document.body.style.height = "";
+        introTl.kill();
+        if (scrollTl) scrollTl.kill();
       };
     },
     { dependencies: [isLoaded], scope: heroRef, revertOnUpdate: true }
@@ -233,12 +270,13 @@ export default function HomeHero({ isLoaded = false, shouldPlayVideo = true }: H
       className="relative w-full overflow-hidden bg-[#000000]"
       style={{ minHeight: "100dvh" }}
     >
+      {/* Z-10: Môi trường Thực (Reality - Video) */}
       <video
         ref={videoRef}
         muted
         loop
         playsInline
-        className="absolute inset-0 z-0 h-full w-full object-cover will-change-transform"
+        className="absolute inset-0 z-10 h-full w-full object-cover will-change-transform"
         style={{
           opacity: 0,
           visibility: "hidden",
@@ -253,16 +291,48 @@ export default function HomeHero({ isLoaded = false, shouldPlayVideo = true }: H
       </video>
 
       <div
-        className="absolute inset-0 z-10"
+        className="absolute inset-0 z-[11]"
         style={{
           background:
             "radial-gradient(circle at center, rgba(0, 0, 0, 0) 38%, rgba(0,0,0,0.42) 72%, rgba(0,0,0,0.78) 100%)",
         }}
       />
 
+      {/* Z-[15]: Môi trường AI / Portal (Galaxy Backdrop) */}
+      <div
+        ref={galaxyRef}
+        className="absolute inset-0 z-[15] overflow-hidden"
+        style={{ opacity: 0, visibility: "hidden", backgroundColor: "#000" }}
+      >
+        <div 
+          className="absolute inset-0"
+          style={{
+            background: "radial-gradient(circle at center, rgba(4,8,18,1) 0%, rgba(1,2,5,1) 100%)",
+          }}
+        />
+        {/* Lớp các vì sao nhẹ */}
+        <div 
+          className="absolute inset-0 opacity-40 mix-blend-screen"
+          style={{
+            backgroundImage: "radial-gradient(rgba(170, 210, 255, 0.45) 1px, transparent 1px)",
+            backgroundSize: "48px 48px",
+            backgroundPosition: "0 0, 24px 24px",
+            transform: "translateZ(0) scale(1.5)",
+            animation: "galaxy-drift 120s linear infinite"
+          }}
+        />
+        <style>{`
+          @keyframes galaxy-drift {
+            0% { background-position: 0 0; }
+            100% { background-position: -400px 400px; }
+          }
+        `}</style>
+      </div>
+
+      {/* Z-[20]: Lớp Mạng Lưới (Plexus/Data Nodes) */}
       <div
         ref={plexusRef}
-        className="absolute inset-0 z-20 overflow-hidden"
+        className="absolute inset-0 z-[20] overflow-hidden"
         style={{
           opacity: 0,
           willChange: "transform, opacity",
@@ -313,7 +383,7 @@ export default function HomeHero({ isLoaded = false, shouldPlayVideo = true }: H
 
       <div
         ref={plexusGlowRef}
-        className="absolute inset-0 z-20"
+        className="absolute inset-0 z-[20]"
         style={{
           opacity: 0,
           willChange: "opacity",
@@ -322,7 +392,8 @@ export default function HomeHero({ isLoaded = false, shouldPlayVideo = true }: H
         }}
       />
 
-      <div className="pointer-events-none absolute inset-0 z-[45] flex flex-col items-center justify-center px-6 text-center">
+      {/* Z-[40]: Lớp Tương Tác Chính - Tiêu đề mồi ECO-TECH */}
+      <div className="pointer-events-none absolute inset-0 z-[40] flex flex-col items-center justify-center px-6 text-center">
         <h1
           ref={titleWrapRef}
           className="m-0 flex w-full max-w-5xl justify-center"
@@ -341,7 +412,7 @@ export default function HomeHero({ isLoaded = false, shouldPlayVideo = true }: H
           >
             <title>ECO-TECH</title>
             
-            {/* Lớp 2 (TECH - Outline Trắng, Nằm dưới đàng hoàng, không chồng) */}
+            {/* Lớp 2 (TECH - Outline Trắng) */}
             <text
               ref={techRef}
               x="400"
@@ -365,7 +436,7 @@ export default function HomeHero({ isLoaded = false, shouldPlayVideo = true }: H
               TECH
             </text>
 
-            {/* Lớp 1 (ECO - Solid White, Nằm đúng bên trên, trơn tru tinh giản) */}
+            {/* Lớp 1 (ECO - Solid White) sẽ zoom xuyên không */}
             <text
               ref={ecoRef}
               x="400"
@@ -402,15 +473,30 @@ export default function HomeHero({ isLoaded = false, shouldPlayVideo = true }: H
         </p>
       </div>
 
+      {/* Z-[50]: Đích đến cốt lõi (Core AI Convergence) */}
+      <div className="pointer-events-none absolute inset-0 z-[50] flex flex-col items-center justify-center px-6 text-center">
+        <h2
+          ref={finalTitleRef}
+          className="text-4xl font-extrabold uppercase tracking-widest text-[#ffffff] md:text-5xl lg:text-7xl"
+          style={{
+            opacity: 0,
+            visibility: "hidden",
+            textShadow: "0px 0px 30px rgba(100,200,255,0.4)",
+          }}
+        >
+          Trí tuệ nhân tạo<br className="md:hidden" /> hội tụ.
+        </h2>
+      </div>
+
       <div
-        className="absolute inset-0 z-40"
+        className="absolute inset-0 z-40 pointer-events-none"
         style={{
           background:
             "linear-gradient(to bottom, rgba(3,4,9,0.38) 0%, rgba(4,5,11,0.18) 40%, rgba(4,5,11,0.72) 100%)",
         }}
       />
       <div
-        className="absolute inset-x-0 bottom-0 z-40 h-44"
+        className="absolute inset-x-0 bottom-0 z-40 h-44 pointer-events-none"
         style={{
           background: "linear-gradient(to top, rgba(4,5,11,0.88), rgba(4,5,11,0))",
         }}
