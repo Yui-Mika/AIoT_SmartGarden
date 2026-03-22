@@ -16,7 +16,6 @@ export default function HomeHero({ isLoaded = false, shouldPlayVideo = true }: H
   const filterId = useId().replace(/:/g, "");
   const heroRef = useRef<HTMLElement | null>(null);
   const videoRef = useRef<HTMLVideoElement | null>(null);
-  const galaxyRef = useRef<HTMLDivElement | null>(null);
   const plexusRef = useRef<HTMLDivElement | null>(null);
   const plexusGlowRef = useRef<HTMLDivElement | null>(null);
   const titleWrapRef = useRef<HTMLHeadingElement | null>(null);
@@ -41,7 +40,6 @@ export default function HomeHero({ isLoaded = false, shouldPlayVideo = true }: H
       }
 
       const video = videoRef.current;
-      const galaxy = galaxyRef.current;
       const plexus = plexusRef.current;
       const plexusGlow = plexusGlowRef.current;
       const titleWrap = titleWrapRef.current;
@@ -53,7 +51,6 @@ export default function HomeHero({ isLoaded = false, shouldPlayVideo = true }: H
 
       if (
         !video ||
-        !galaxy ||
         !plexus ||
         !plexusGlow ||
         !titleWrap ||
@@ -84,7 +81,6 @@ export default function HomeHero({ isLoaded = false, shouldPlayVideo = true }: H
         transformOrigin: "center center",
       });
       
-      gsap.set(galaxy, { opacity: 0, visibility: "hidden", autoAlpha: 0 });
       gsap.set(slogan, { opacity: 0, visibility: "hidden", y: 20 });
       gsap.set(titleWrap, { opacity: 0, visibility: "hidden" });
       gsap.set(plexus, { opacity: 0, scale: 1, transformOrigin: "center center" });
@@ -113,10 +109,10 @@ export default function HomeHero({ isLoaded = false, shouldPlayVideo = true }: H
       let scrollTl: gsap.core.Timeline;
 
       const unlockScroll = () => {
-        document.documentElement.style.overflow = "";
-        document.documentElement.style.height = "";
-        document.body.style.overflow = "";
-        document.body.style.height = "";
+        document.documentElement.style.overflow = "auto";
+        document.documentElement.style.height = "auto";
+        document.body.style.overflow = "auto";
+        document.body.style.height = "auto";
         
         // 2. Tháo xích cho ScrollTrigger Portal
         if (scrollTl && scrollTl.scrollTrigger) {
@@ -215,7 +211,6 @@ export default function HomeHero({ isLoaded = false, shouldPlayVideo = true }: H
 
       // Background Swap (40% -> 60%): Khi đoạn scale làm chữ trắng sắp che kín mặt
       scrollTl.to(video, { autoAlpha: 0, duration: 0.2, ease: "none", immediateRender: false }, 0.4);
-      scrollTl.to(galaxy, { autoAlpha: 1, duration: 0.2, ease: "none", immediateRender: false }, 0.4);
 
       // Chữ ECO hoàn thành sứ mệnh cổng portal -> Xóa (60% -> 70%)
       scrollTl.to(eco, { opacity: 0, duration: 0.1, ease: "none", immediateRender: false }, 0.6);
@@ -267,7 +262,7 @@ export default function HomeHero({ isLoaded = false, shouldPlayVideo = true }: H
   return (
     <section
       ref={heroRef}
-      className="relative w-full overflow-hidden bg-[#000000]"
+      className="relative w-full overflow-hidden bg-transparent"
       style={{ minHeight: "100dvh" }}
     >
       {/* Z-10: Môi trường Thực (Reality - Video) */}
@@ -298,38 +293,7 @@ export default function HomeHero({ isLoaded = false, shouldPlayVideo = true }: H
         }}
       />
 
-      {/* Z-[15]: Môi trường AI / Portal (Galaxy Backdrop) */}
-      <div
-        ref={galaxyRef}
-        className="absolute inset-0 z-[15] overflow-hidden"
-        style={{ opacity: 0, visibility: "hidden", backgroundColor: "#000" }}
-      >
-        <div 
-          className="absolute inset-0"
-          style={{
-            background: "radial-gradient(circle at center, rgba(4,8,18,1) 0%, rgba(1,2,5,1) 100%)",
-          }}
-        />
-        {/* Lớp các vì sao nhẹ */}
-        <div 
-          className="absolute inset-0 opacity-40 mix-blend-screen"
-          style={{
-            backgroundImage: "radial-gradient(rgba(170, 210, 255, 0.45) 1px, transparent 1px)",
-            backgroundSize: "48px 48px",
-            backgroundPosition: "0 0, 24px 24px",
-            transform: "translateZ(0) scale(1.5)",
-            animation: "galaxy-drift 120s linear infinite"
-          }}
-        />
-        <style>{`
-          @keyframes galaxy-drift {
-            0% { background-position: 0 0; }
-            100% { background-position: -400px 400px; }
-          }
-        `}</style>
-      </div>
-
-      {/* Z-[20]: Lớp Mạng Lưới (Plexus/Data Nodes) */}
+      {/* Z-[20]: Lớp Mạng Lưới (Plexus/Data Nodes) của Hero (sẽ mờ đi khi zoom) */}
       <div
         ref={plexusRef}
         className="absolute inset-0 z-[20] overflow-hidden"

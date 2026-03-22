@@ -26,9 +26,9 @@ type Product = {
 /* ── Category config ── */
 const CATEGORIES = [
   { value: "all",        label: "Tất cả",     icon: LayoutGrid,   dot: "rgba(255,255,255,0.4)" },
-  { value: "seeds",      label: "Hạt Giống",  icon: Leaf,         dot: "var(--emerald-500)"    },
-  { value: "nutrients",  label: "Dinh Dưỡng", icon: FlaskConical, dot: "#60A5FA"               },
-  { value: "smart-pots", label: "Smart Pot",  icon: Cpu,          dot: "var(--gold-400)"       },
+  { value: "seeds",      label: "Hạt Giống",  icon: Leaf,         dot: "var(--cyan-500)"    },
+  { value: "nutrients",  label: "Dinh Dưỡng", icon: FlaskConical, dot: "var(--cyan-400)"    },
+  { value: "smart-pots", label: "Smart Pot",  icon: Cpu,          dot: "var(--cyan-600)"    },
 ];
 
 const SORT_OPTIONS = [
@@ -101,9 +101,9 @@ export default function ProductsClient({ products }: { products: Product[] }) {
                   style={
                     active
                       ? {
-                          background: "rgba(16,185,129,0.12)",
-                          color: "var(--emerald-400)",
-                          border: "1px solid rgba(16,185,129,0.28)",
+                          background: "rgba(6,182,212,0.12)",
+                          color: "var(--cyan-400)",
+                          border: "1px solid rgba(6,182,212,0.28)",
                         }
                       : {
                           background: "transparent",
@@ -121,8 +121,8 @@ export default function ProductsClient({ products }: { products: Product[] }) {
                   <span
                     className="rounded-full px-1.5 py-0.5 font-mono text-[10px]"
                     style={{
-                      background: active ? "rgba(16,185,129,0.15)" : "rgba(255,255,255,0.06)",
-                      color: active ? "var(--emerald-400)" : "var(--text-muted)",
+                      background: active ? "rgba(6,182,212,0.15)" : "rgba(255,255,255,0.06)",
+                      color: active ? "var(--cyan-400)" : "var(--text-muted)",
                     }}
                   >
                     {countOf(value)}
@@ -166,14 +166,14 @@ export default function ProductsClient({ products }: { products: Product[] }) {
                     onClick={() => { setSortBy(value); setSortOpen(false); }}
                     className="flex w-full items-center gap-2 px-4 py-2.5 text-left text-xs transition-colors"
                     style={{
-                      color: sortBy === value ? "var(--emerald-400)" : "var(--text-secondary)",
-                      background: sortBy === value ? "rgba(16,185,129,0.08)" : "transparent",
+                      color: sortBy === value ? "var(--cyan-400)" : "var(--text-secondary)",
+                      background: sortBy === value ? "rgba(6,182,212,0.08)" : "transparent",
                     }}
                   >
                     {sortBy === value && (
                       <span
                         className="h-1.5 w-1.5 rounded-full"
-                        style={{ background: "var(--emerald-500)", flexShrink: 0 }}
+                        style={{ background: "var(--cyan-500)", flexShrink: 0 }}
                       />
                     )}
                     {sortBy !== value && <span className="h-1.5 w-1.5" />}
@@ -204,9 +204,9 @@ export default function ProductsClient({ products }: { products: Product[] }) {
               onClick={() => setActiveCategory("all")}
               className="flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-medium transition-colors"
               style={{
-                background: "rgba(16,185,129,0.08)",
-                border: "1px solid rgba(16,185,129,0.20)",
-                color: "var(--emerald-400)",
+                background: "rgba(6,182,212,0.08)",
+                border: "1px solid rgba(6,182,212,0.20)",
+                color: "var(--cyan-400)",
               }}
             >
               {CATEGORIES.find((c) => c.value === activeCategory)?.label}
@@ -268,7 +268,7 @@ export default function ProductsClient({ products }: { products: Product[] }) {
             </p>
             <button
               onClick={() => { setActiveCategory("all"); setSortBy("default"); }}
-              className="btn-emerald mt-6 gap-2 text-xs"
+              className="btn-cyan mt-6 gap-2 text-xs"
             >
               Xoá bộ lọc
             </button>

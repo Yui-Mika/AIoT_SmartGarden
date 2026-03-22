@@ -42,7 +42,7 @@ export default function SiteFooter() {
             <span
               className="flex h-8 w-8 items-center justify-center rounded-xl"
               style={{
-                background: "linear-gradient(135deg, var(--emerald-500), var(--emerald-600))",
+                background: "linear-gradient(135deg, var(--cyan-500), var(--cyan-600))",
               }}
             >
               <Leaf size={16} color="#fff" />
@@ -95,7 +95,7 @@ export default function SiteFooter() {
                   className="text-sm transition-colors duration-150"
                   style={{ color: "var(--text-secondary)" }}
                   onMouseEnter={(e) =>
-                    ((e.currentTarget as HTMLElement).style.color = "var(--emerald-400)")
+                    ((e.currentTarget as HTMLElement).style.color = "var(--cyan-400)")
                   }
                   onMouseLeave={(e) =>
                     ((e.currentTarget as HTMLElement).style.color = "var(--text-secondary)")
@@ -118,13 +118,13 @@ export default function SiteFooter() {
           </p>
           <ul className="space-y-3">
             <li className="flex items-center gap-2.5">
-              <Mail size={13} style={{ color: "var(--emerald-500)", flexShrink: 0 }} />
+              <Mail size={13} style={{ color: "var(--cyan-500)", flexShrink: 0 }} />
               <a
                 href="mailto:support@eco-tech.vn"
                 className="text-sm transition-colors duration-150"
                 style={{ color: "var(--text-secondary)", fontFamily: "var(--font-mono)" }}
                 onMouseEnter={(e) =>
-                  ((e.currentTarget as HTMLElement).style.color = "var(--emerald-400)")
+                  ((e.currentTarget as HTMLElement).style.color = "var(--cyan-400)")
                 }
                 onMouseLeave={(e) =>
                   ((e.currentTarget as HTMLElement).style.color = "var(--text-secondary)")
@@ -134,7 +134,7 @@ export default function SiteFooter() {
               </a>
             </li>
             <li className="flex items-center gap-2.5">
-              <Phone size={13} style={{ color: "var(--emerald-500)", flexShrink: 0 }} />
+              <Phone size={13} style={{ color: "var(--cyan-500)", flexShrink: 0 }} />
               <span
                 className="text-sm"
                 style={{ color: "var(--text-secondary)", fontFamily: "var(--font-mono)" }}
@@ -143,7 +143,7 @@ export default function SiteFooter() {
               </span>
             </li>
             <li className="flex items-start gap-2.5">
-              <MapPin size={13} style={{ color: "var(--emerald-500)", flexShrink: 0, marginTop: 2 }} />
+              <MapPin size={13} style={{ color: "var(--cyan-500)", flexShrink: 0, marginTop: 2 }} />
               <span className="text-sm" style={{ color: "var(--text-secondary)" }}>
                 Ho Chi Minh City, Vietnam
               </span>
@@ -154,13 +154,13 @@ export default function SiteFooter() {
           <div
             className="mt-6 inline-flex items-center gap-2 rounded-full px-3 py-1.5"
             style={{
-              background: "rgba(16,185,129,0.08)",
-              border: "1px solid rgba(16,185,129,0.16)",
+              background: "rgba(6,182,212,0.08)",
+              border: "1px solid rgba(6,182,212,0.16)",
             }}
           >
-            <span className="status-dot status-online" style={{ width: 6, height: 6 }} />
-            <span className="text-xs font-medium" style={{ color: "var(--emerald-400)" }}>
-              Hệ thống đang hoạt động
+            <span className="status-dot status-online" style={{ width: 6, height: 6, backgroundColor: "var(--cyan-500)" }} />
+            <span className="text-xs font-medium" style={{ color: "var(--cyan-400)" }}>
+              Hệ thống mạng đồng bộ
             </span>
           </div>
         </div>

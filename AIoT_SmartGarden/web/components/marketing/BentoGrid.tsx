@@ -1,8 +1,28 @@
 "use client";
 
-import Image from "next/image";
 import { useEffect, useRef, useState } from "react";
+import Image from "next/image";
 import { ScanEye, TrendingUp, Cpu, BellDot, Wifi, RefreshCw, AlertTriangle, CheckCircle } from "lucide-react";
+import gsap from "gsap";
+import { ScrollTrigger } from "gsap/ScrollTrigger";
+import { useGSAP } from "@gsap/react";
+
+if (typeof window !== "undefined") gsap.registerPlugin(ScrollTrigger, useGSAP);
+
+/* ─────────────────────────────────────
+   HUD Components
+───────────────────────────────────── */
+export function HudCorners() {
+  const c = "absolute w-3 h-3 border-[1.5px] border-[rgba(34,211,238,0.5)] pointer-events-none z-20";
+  return (
+    <>
+      <div className={`${c} top-[-1px] left-[-1px] border-r-0 border-b-0`} />
+      <div className={`${c} top-[-1px] right-[-1px] border-l-0 border-b-0`} />
+      <div className={`${c} bottom-[-1px] left-[-1px] border-r-0 border-t-0`} />
+      <div className={`${c} bottom-[-1px] right-[-1px] border-l-0 border-t-0`} />
+    </>
+  );
+}
 
 /* ─────────────────────────────────────
    Scroll-reveal hook
@@ -31,108 +51,127 @@ function useScrollReveal(threshold = 0.12) {
 }
 
 /* ─────────────────────────────────────
-   Vision AI — camera mockup
+   Number Counter Hook
 ───────────────────────────────────── */
-function VisionMockup() {
+function NumberCounter({ value, visible }: { value: number; visible: boolean }) {
+  const [count, setCount] = useState(0);
+  
+  useEffect(() => {
+    if (!visible) {
+      setCount(0);
+      return;
+    }
+    let startTimestamp: number | null = null;
+    const duration = 1200; // ms
+    let frameId: number;
+
+    const step = (timestamp: number) => {
+      if (!startTimestamp) startTimestamp = timestamp;
+      const progress = Math.min((timestamp - startTimestamp) / duration, 1);
+      // easeOutExpo
+      const easing = progress === 1 ? 1 : 1 - Math.pow(2, -10 * progress);
+      setCount(Math.floor(easing * value));
+      if (progress < 1) {
+        frameId = requestAnimationFrame(step);
+      }
+    };
+
+    frameId = requestAnimationFrame(step);
+
+    return () => {
+      if (frameId) cancelAnimationFrame(frameId);
+    };
+  }, [value, visible]);
+
+  return <>{count}</>;
+}
+
+/* ─────────────────────────────────────
+   Vision AI — Holographic Feed
+───────────────────────────────────── */
+function VisionMockup({ visible }: { visible: boolean }) {
   return (
     <div
       className="absolute inset-y-0 right-0 w-[52%] overflow-hidden"
-      style={{ borderLeft: "1px solid rgba(255,255,255,0.05)" }}
+      style={{ borderLeft: "1px solid rgba(6,182,212,0.2)" }}
     >
-      <div className="relative h-full w-full" style={{ background: "#06080F" }}>
-
-        {/* Strawberry leaf photo — replace with /images/strawberry-leaf.jpg when available */}
+      {/* Container for feed */}
+      <div className="relative h-full w-full bg-black">
+        
+        {/* The plant image strictly filtered identically to HUD expectations */}
         <Image
           src="/images/chaucay.webp"
-          alt="Strawberry leaf"
+          alt="Vision Target"
           fill
           className="object-cover"
-          style={{ opacity: 0.85 }}
-        />
-
-        {/* Dark vignette overlay to keep bounding boxes readable */}
-        <div
-          className="absolute inset-0"
           style={{
-            background: "linear-gradient(135deg, rgba(6,8,15,0.35) 0%, rgba(6,8,15,0.10) 50%, rgba(6,8,15,0.45) 100%)",
+            filter: "grayscale(100%) brightness(0.8) sepia(100%) hue-rotate(140deg) saturate(200%)",
+            opacity: 0.85
           }}
         />
 
-        {/* Corner brackets — blue */}
-        {[
-          { t: "8px",  l: "8px",  borderT: true,  borderL: true  },
-          { t: "8px",  r: "8px",  borderT: true,  borderR: true  },
-          { b: "8px",  l: "8px",  borderB: true,  borderL: true  },
-          { b: "8px",  r: "8px",  borderB: true,  borderR: true  },
-        ].map((pos, i) => (
-          <div
-            key={i}
-            className="absolute h-5 w-5"
-            style={{
-              top: pos.t, left: pos.l, right: pos.r, bottom: pos.b,
-              borderTop:    pos.borderT ? "1.5px solid #3B82F6" : undefined,
-              borderLeft:   pos.borderL ? "1.5px solid #3B82F6" : undefined,
-              borderRight:  pos.borderR ? "1.5px solid #3B82F6" : undefined,
-              borderBottom: pos.borderB ? "1.5px solid #3B82F6" : undefined,
-            }}
-          />
-        ))}
+        {/* Scan lines & Noise Overlay */}
+        <div 
+          className="absolute inset-0 pointer-events-none"
+          style={{
+            backgroundImage: "url('data:image/svg+xml,%3Csvg viewBox=\"0 0 200 200\" xmlns=\"http://www.w3.org/2000/svg\"%3E%3Cfilter id=\"noiseFilter\"%3E%3CfeTurbulence type=\"fractalNoise\" baseFrequency=\"0.9\" numOctaves=\"3\" stitchTiles=\"stitch\"/%3E%3C/filter%3E%3Crect width=\"100%25\" height=\"100%25\" filter=\"url(%23noiseFilter)\"/%3E%3C/svg%3E')",
+            opacity: 0.12,
+            mixBlendMode: "overlay"
+          }}
+        />
+        <div 
+          className="absolute inset-0 pointer-events-none"
+          style={{
+            background: "repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(34,211,238,0.08) 2px, rgba(34,211,238,0.08) 4px)",
+            backgroundSize: "100% 4px"
+          }} 
+        />
 
-        {/* Detection box 1 — disease (red) */}
+        {/* Corner HUD framing for the feed block */}
+        <HudCorners />
+
+        {/* Detection Box 1 — Stroke only, coord label */}
         <div
           className="absolute"
           style={{
-            left: "14%", top: "22%",
-            width: 68, height: 68,
-            border: "1.5px solid #EF4444",
-            background: "rgba(239,68,68,0.08)",
+            left: "24%", top: "32%",
+            width: 80, height: 80,
+            border: "1px solid var(--cyan-500)",
+            boxShadow: "0 0 8px rgba(34,211,238,0.2) inset"
           }}
         >
+          {/* Target Reticle corners on the box itself */}
+          <div className="absolute top-[-3px] left-[-3px] w-2 h-2 border-t-[1.5px] border-l-[1.5px] border-[var(--cyan-400)]" />
+          <div className="absolute bottom-[-3px] right-[-3px] w-2 h-2 border-b-[1.5px] border-r-[1.5px] border-[var(--cyan-400)]" />
+
           <span
-            className="absolute -top-5 left-0 px-1.5 py-0.5 font-mono text-[8px] font-bold"
-            style={{ background: "#EF4444", color: "#fff", whiteSpace: "nowrap" }}
+            className="absolute -top-7 left-0 px-1 py-0.5 font-mono text-[9px] font-bold"
+            style={{ color: "var(--cyan-400)", whiteSpace: "nowrap" }}
           >
-            Yellow_Leaf 87%
+            Anomaly_01 <NumberCounter value={87} visible={visible} />%<br/>
+            [<span className="text-[7px] text-[var(--cyan-600)]">240, 320, 80, 80</span>]
           </span>
         </div>
 
-        {/* Detection box 2 — pest (amber) */}
+        {/* Animated scan line sweeping down */}
         <div
-          className="absolute"
+          className="animate-scan-down absolute inset-x-0 h-px"
           style={{
-            right: "14%", bottom: "28%",
-            width: 44, height: 38,
-            border: "1.5px solid #F59E0B",
-            background: "rgba(245,158,11,0.08)",
-          }}
-        >
-          <span
-            className="absolute -top-4 left-0 px-1 py-0.5 font-mono text-[7px] font-bold"
-            style={{ background: "#F59E0B", color: "#000", whiteSpace: "nowrap" }}
-          >
-            Aphid 71%
-          </span>
-        </div>
-
-        {/* Animated scan line */}
-        <div
-          className="animate-scan-down absolute inset-x-3 h-px"
-          style={{
-            background: "linear-gradient(90deg, transparent, rgba(59,130,246,0.8), transparent)",
-            boxShadow: "0 0 8px rgba(59,130,246,0.5)",
+            background: "rgba(34,211,238,0.6)",
+            boxShadow: "0 0 12px 2px rgba(34,211,238,0.6)",
           }}
         />
 
         {/* Status bar */}
         <div
-          className="absolute inset-x-0 bottom-0 flex items-center justify-between px-3 py-1.5"
-          style={{ background: "rgba(0,0,0,0.65)" }}
+          className="absolute inset-x-0 bottom-0 flex items-center justify-between px-3 py-1.5 border-t border-[rgba(34,211,238,0.3)] backdrop-blur-md"
+          style={{ background: "rgba(0,0,0,0.6)" }}
         >
-          <span className="font-mono text-[9px]" style={{ color: "#60A5FA" }}>
-            CAM_01 · LIVE
+          <span className="font-mono text-[10px] uppercase font-bold tracking-widest" style={{ color: "var(--cyan-500)" }}>
+            CAM_01 · <span className="animate-pulse">REC</span>
           </span>
-          <span className="font-mono text-[9px]" style={{ color: "#10b981" }}>
-            2 objects
+          <span className="font-mono text-[9px]" style={{ color: "var(--cyan-400)" }}>
+             <NumberCounter value={2} visible={visible} /> anomalies DETECTED
           </span>
         </div>
       </div>
@@ -141,58 +180,60 @@ function VisionMockup() {
 }
 
 /* ─────────────────────────────────────
-   Telemetry — SVG sparkline
+   Telemetry — Holographic Line Only
 ───────────────────────────────────── */
 function TelemetryChart({ visible }: { visible: boolean }) {
-  const LINE = "M0,48 C15,44 25,40 38,36 C50,32 60,28 75,24 C88,20 100,16 115,12 C128,9 140,7 155,5 C168,4 182,3 200,2";
-  const FILL = `${LINE} L200,56 L0,56 Z`;
+  // A clean, techy wave
+  const LINE = "M0,48 L10,48 L20,40 L30,40 L40,32 L50,42 L60,28 L70,30 L80,20 L90,20 L100,12 L110,18 L120,5 L130,10 L140,5 L150,15 L160,8 L170,12 L180,2 L190,5 L200,0";
 
   return (
     <div
-      className="overflow-hidden rounded-xl p-3"
+      className="overflow-hidden rounded-xl p-3 relative h-[80px]"
       style={{
-        background: "rgba(255,255,255,0.02)",
-        border: "1px solid rgba(255,255,255,0.05)",
+        background: "rgba(0,0,0,0.4)",
+        border: "1px solid rgba(34,211,238,0.15)",
       }}
     >
+      <HudCorners />
+      {/* Axes */}
+      <div className="absolute left-3 bottom-5 right-3 h-[1px] bg-[rgba(34,211,238,0.2)]" />
+      <div className="absolute left-3 bottom-5 top-3 w-[1px] bg-[rgba(34,211,238,0.2)]" />
+      
+      {/* Grid lines */}
+      <div className="absolute left-3 bottom-[50%] right-3 h-[1px] bg-[rgba(34,211,238,0.05)] border-dashed border-b border-[rgba(34,211,238,0.1)]" />
+
       <svg
         viewBox="0 0 200 56"
         fill="none"
-        className="w-full"
-        style={{ height: 56 }}
+        className="w-full h-full pb-3 pl-1"
         aria-hidden="true"
       >
-        <defs>
-          <linearGradient id="tGrad" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0%" stopColor="#10b981" stopOpacity="0.28" />
-            <stop offset="100%" stopColor="#10b981" stopOpacity="0" />
-          </linearGradient>
-        </defs>
-        {/* Fill */}
-        <path d={FILL} fill="url(#tGrad)" />
-        {/* Line */}
+        {/* Line completely without fill */}
         <path
           d={LINE}
-          stroke="#10b981"
-          strokeWidth="1.8"
-          strokeLinecap="round"
-          strokeLinejoin="round"
+          stroke="#06B6D4"
+          strokeWidth="1.2"
+          strokeLinecap="square"
+          strokeLinejoin="miter"
           fill="none"
           strokeDasharray="400"
           className={visible ? "animate-draw-line" : ""}
-          style={{ strokeDashoffset: visible ? 0 : 400 }}
+          style={{ 
+            strokeDashoffset: visible ? 0 : 400,
+            filter: "drop-shadow(0px 0px 4px rgba(6,182,212,0.6))"
+          }}
         />
         {/* End dot */}
-        <circle cx="200" cy="2" r="3" fill="#10b981" className="animate-pulse" />
+        <circle cx="200" cy="0" r="2" fill="#22D3EE" className="animate-pulse" />
       </svg>
 
-      {/* Time labels */}
-      <div className="mt-1 flex justify-between">
-        <span className="font-mono text-[9px]" style={{ color: "var(--text-muted)" }}>
-          −24h
+      {/* Terminology */}
+      <div className="absolute bottom-1 w-full left-0 px-3 flex justify-between">
+        <span className="font-mono text-[8.5px]" style={{ color: "var(--text-muted)" }}>
+          T-24H
         </span>
-        <span className="font-mono text-[9px]" style={{ color: "var(--emerald-400)" }}>
-          Now ↑
+        <span className="font-mono text-[8.5px] uppercase font-bold" style={{ color: "var(--cyan-400)" }}>
+          SYNC ↑
         </span>
       </div>
     </div>
@@ -200,62 +241,67 @@ function TelemetryChart({ visible }: { visible: boolean }) {
 }
 
 /* ─────────────────────────────────────
-   ESP32 — circuit mockup
+   Hardware Status Blueprint
 ───────────────────────────────────── */
 function CircuitMockup() {
   const STATUS = [
-    { icon: Wifi,      label: "WiFi",    on: true  },
-    { icon: RefreshCw, label: "MQTT",    on: true  },
-    { icon: RefreshCw, label: "OTA",     on: false },
+    { label: "WIFI_LINK",  on: true  },
+    { label: "MQTT_BUS",   on: true  },
+    { label: "PROC_UNIT",  on: false },
   ];
 
   return (
-    <div className="space-y-2">
-      {/* Chip block */}
+    <div className="space-y-3 relative p-1">
+      {/* Chip Blueprint */}
       <div
-        className="relative flex items-center justify-center rounded-xl py-3"
+        className="relative flex items-center justify-center py-4"
         style={{
-          background: "rgba(255,255,255,0.03)",
-          border: "1px solid rgba(255,255,255,0.07)",
-          backgroundImage:
-            "radial-gradient(circle, rgba(255,255,255,0.05) 1px, transparent 1px)",
-          backgroundSize: "12px 12px",
+          background: "transparent",
+          border: "1px dashed rgba(34,211,238,0.3)",
         }}
       >
-        <div
-          className="flex h-10 w-16 items-center justify-center rounded-md font-mono text-[9px] font-bold"
-          style={{
-            background: "rgba(255,255,255,0.06)",
-            border: "1px solid rgba(255,255,255,0.12)",
-            color: "var(--text-secondary)",
-            letterSpacing: "0.08em",
-          }}
-        >
-          ESP32-S3
+        <HudCorners />
+        {/* SVG Chip Drawing */}
+        <svg width="80" height="40" viewBox="0 0 80 40" className="opacity-80">
+          <rect x="25" y="5" width="30" height="30" fill="none" stroke="#22D3EE" strokeWidth="1" />
+          <rect x="28" y="8" width="24" height="24" fill="rgba(34,211,238,0.1)" stroke="#06B6D4" strokeWidth="0.5" />
+          {/* Pins Top/Bottom */}
+          {[1,2,3,4,5,6].map((i) => (
+            <g key={i}>
+              <rect x={25 + i * 4.2} y="1" width="1.5" height="4" fill="#0891B2" />
+              <rect x={25 + i * 4.2} y="35" width="1.5" height="4" fill="#0891B2" />
+            </g>
+          ))}
+          {/* Pins Left/Right */}
+          {[1,2,3,4,5,6].map((i) => (
+            <g key={`h${i}`}>
+              <rect x="21" y={5 + i * 4.2} width="4" height="1.5" fill="#0891B2" />
+              <rect x="55" y={5 + i * 4.2} width="4" height="1.5" fill="#0891B2" />
+            </g>
+          ))}
+        </svg>
+        <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+          <span className="font-mono text-[7px] font-bold text-[#22D3EE] tracking-widest mt-0.5 shadow-xl">MCU-XX</span>
         </div>
       </div>
 
-      {/* Status indicators */}
-      <div className="grid grid-cols-3 gap-1.5">
-        {STATUS.map(({ icon: Icon, label, on }) => (
-          <div
-            key={label}
-            className="flex flex-col items-center gap-1 rounded-lg py-2"
-            style={{
-              background: on ? "rgba(16,185,129,0.06)" : "rgba(255,255,255,0.02)",
-              border: on ? "1px solid rgba(16,185,129,0.15)" : "1px solid rgba(255,255,255,0.05)",
-            }}
-          >
-            <Icon
-              size={11}
-              style={{ color: on ? "var(--emerald-400)" : "var(--text-muted)" }}
-            />
-            <span
-              className="font-mono text-[8px] font-semibold"
-              style={{ color: on ? "var(--emerald-400)" : "var(--text-muted)" }}
-            >
-              {label}
-            </span>
+      {/* Terminal lines styling */}
+      <div className="flex flex-col gap-1.5 mt-2">
+        {STATUS.map(({ label, on }) => (
+          <div key={label} className="flex justify-between items-center text-[9px] font-mono border-b border-[rgba(34,211,238,0.1)] pb-1">
+            <span style={{ color: "var(--text-muted)" }}>{label}</span>
+            <div className="flex items-center gap-1.5">
+              <span style={{ color: on ? "var(--cyan-400)" : "var(--text-muted)", fontWeight: "bold" }}>
+                {on ? "STATUS: ONLINE" : "STATUS: OFFLINE"}
+              </span>
+              <div 
+                className={`w-1.5 h-1.5 rounded-full ${on ? 'animate-pulse' : ''}`} 
+                style={{ 
+                  backgroundColor: on ? "var(--cyan-400)" : "var(--text-muted)",
+                  boxShadow: on ? "0 0 6px var(--cyan-500)" : "none" 
+                }} 
+              />
+            </div>
           </div>
         ))}
       </div>
@@ -264,49 +310,34 @@ function CircuitMockup() {
 }
 
 /* ─────────────────────────────────────
-   FCM — stacked notification preview
+   FCM — Log lines preview
 ───────────────────────────────────── */
 function NotificationStack() {
   const NOTIFS = [
-    {
-      icon: AlertTriangle,
-      iconColor: "var(--gold-500)",
-      bg: "rgba(245,158,11,0.08)",
-      border: "rgba(245,158,11,0.20)",
-      title: "TDS thấp ngưỡng",
-      sub: "SGP-001 · 2 phút trước",
-    },
-    {
-      icon: CheckCircle,
-      iconColor: "var(--emerald-500)",
-      bg: "rgba(16,185,129,0.06)",
-      border: "rgba(16,185,129,0.18)",
-      title: "pH ổn định 6.2",
-      sub: "SGP-001 · 15 phút trước",
-    },
+    { title: "SYS_SYNC_COMPLETE", sub: "HEX: 0x2A3F · RT: 2m" },
+    { title: "NET_STABILITY_OK",  sub: "LATENCY: 12ms · RT: 15m" },
   ];
 
   return (
     <div className="space-y-2">
-      {NOTIFS.map(({ icon: Icon, iconColor, bg, border, title, sub }, i) => (
+      {NOTIFS.map(({ title, sub }, i) => (
         <div
           key={title}
-          className="flex items-start gap-2.5 rounded-xl px-3 py-2.5"
+          className="relative px-3 py-2"
           style={{
-            background: bg,
-            border: `1px solid ${border}`,
-            transform: i === 1 ? "scale(0.96)" : "scale(1)",
-            opacity: i === 1 ? 0.75 : 1,
+            background: "rgba(0,0,0,0.4)",
+            borderLeft: "2px solid var(--cyan-500)",
+            transform: i === 1 ? "scale(0.98)" : "scale(1)",
+            opacity: i === 1 ? 0.65 : 1,
             transition: "transform 0.2s ease",
           }}
         >
-          <Icon size={13} style={{ color: iconColor, flexShrink: 0, marginTop: 1 }} />
-          <div className="min-w-0">
-            <p className="truncate text-[11px] font-semibold" style={{ color: "var(--text-primary)" }}>
-              {title}
+          <div className="min-w-0 font-mono">
+            <p className="truncate text-[10px] font-bold uppercase tracking-wider text-[var(--cyan-400)]">
+              &gt; {title}
             </p>
-            <p className="mt-0.5 font-mono text-[9px]" style={{ color: "var(--text-muted)" }}>
-              {sub}
+            <p className="mt-0.5 text-[8.5px] text-[var(--text-muted)]">
+              [LOG] {sub}
             </p>
           </div>
         </div>
@@ -319,334 +350,167 @@ function NotificationStack() {
    Main component
 ───────────────────────────────────── */
 export default function BentoGrid() {
-  const { ref, visible } = useScrollReveal();
+  const containerRef = useRef<HTMLElement>(null);
+  const [revealed, setRevealed] = useState(false);
 
-  const cardBase: React.CSSProperties = {
-    transition: "opacity 0.7s ease, transform 0.7s ease, border-color 0.25s ease, box-shadow 0.25s ease",
-  };
+  useGSAP(() => {
+    const tl = gsap.timeline({
+      scrollTrigger: {
+        trigger: containerRef.current,
+        start: "top 85%",
+        toggleActions: "play none none reverse",
+        onLeaveBack: () => setRevealed(false)
+      },
+      onComplete: () => setRevealed(true),
+      onReverseComplete: () => setRevealed(false)
+    });
 
-  const hidden: React.CSSProperties = { opacity: 0, transform: "translateY(36px)" };
-  const shown: React.CSSProperties  = { opacity: 1, transform: "translateY(0)" };
+    // 1. Header Animation
+    tl.fromTo(".bento-title",
+      { opacity: 0, filter: "blur(10px)", letterSpacing: "0.5em" },
+      { opacity: 1, filter: "blur(0px)", letterSpacing: "0.2em", duration: 1.2, ease: "expo.out" }
+    )
+    .fromTo(".bento-subtitle",
+      { opacity: 0, filter: "blur(4px)" },
+      { opacity: 1, filter: "blur(0px)", duration: 0.8, ease: "expo.out", stagger: 0.15 },
+      "-=0.9"
+    )
+    // 2. Bento Grid Spread Animation
+    .fromTo(".bento-card",
+      { clipPath: "inset(50% 0 50% 0)", opacity: 0 },
+      { clipPath: "inset(0% 0 0% 0)", opacity: 1, duration: 1.2, ease: "expo.out", stagger: 0.15 },
+      "-=0.6"
+    );
+
+  }, { scope: containerRef });
 
   return (
     <section
-      className="relative overflow-hidden"
-      style={{ marginTop: "6rem", paddingBottom: "2rem" }}
+      ref={containerRef as any}
+      className="relative overflow-visible"
+      style={{ marginTop: "6rem", paddingBottom: "6rem" }}
     >
-      {/* Subtle dot-grid background for the whole section */}
-      <div
-        className="pointer-events-none absolute inset-0"
-        style={{
-          backgroundImage: "radial-gradient(circle, rgba(255,255,255,0.025) 1px, transparent 1px)",
-          backgroundSize: "40px 40px",
-          maskImage: "linear-gradient(to bottom, transparent, black 15%, black 85%, transparent)",
-          WebkitMaskImage: "linear-gradient(to bottom, transparent, black 15%, black 85%, transparent)",
-        }}
-      />
-
       <div className="relative z-10 mx-auto w-full max-w-6xl px-4 md:px-6">
 
         {/* ── Section header ── */}
         <div
-          className="mb-12 flex items-end justify-between"
-          style={Object.assign({}, cardBase, visible ? { ...shown, transitionDelay: "0ms" } : hidden)}
+          className="mb-14 flex flex-col items-center justify-center text-center"
         >
-          <div className="flex items-start gap-5">
-            {/* Accent — vertical line + section number */}
-            <div className="flex flex-col items-center gap-2 pt-1">
-              <div
-                className="h-10 w-px"
-                style={{
-                  background: "linear-gradient(to bottom, var(--emerald-500), transparent)",
-                }}
-              />
-              <span
-                className="font-mono text-[11px] font-bold"
-                style={{ color: "var(--emerald-500)", letterSpacing: "0.12em" }}
-              >
-                01
-              </span>
-            </div>
-
-            <div>
-              <p
-                className="mb-2 font-mono text-xs font-semibold uppercase tracking-[0.15em]"
-                style={{ color: "var(--emerald-500)" }}
-              >
-                // CORE TECHNOLOGY
-              </p>
-              <h2
-                className="text-3xl font-bold leading-tight md:text-4xl"
-                style={{ color: "var(--text-primary)" }}
-              >
-                Trí tuệ nhân tạo{" "}
-                <span className="text-gradient-emerald">hội tụ.</span>
-              </h2>
-              <p className="mt-2 text-sm" style={{ color: "var(--text-secondary)" }}>
-                Kiến trúc phần cứng và phần mềm hoạt động liền mạch.
-              </p>
-            </div>
-          </div>
+          <span
+            className="bento-subtitle font-mono text-[10px] font-bold mb-4 px-2 py-1"
+            style={{ color: "var(--text-muted)", background: "rgba(0,0,0,0.6)", backdropFilter: "blur(4px)" }}
+          >
+            [ SYST_LOAD: 0x3B9F ]
+          </span>
+          <p
+            className="bento-subtitle mb-2 font-mono text-[11px] font-bold uppercase tracking-[0.2em]"
+            style={{ color: "var(--cyan-500)" }}
+          >
+            // DATA_MATRIX_INITIALIZED
+          </p>
+          <h2
+            className="bento-title text-3xl md:text-5xl font-extrabold leading-tight uppercase text-white"
+          >
+            Mạng lưới phân tích <br/> Thời gian thực
+          </h2>
         </div>
 
         {/* ── Bento grid ── */}
         <div
-          ref={ref}
-          className="grid auto-rows-[220px] grid-cols-1 gap-4 md:grid-cols-4 md:grid-rows-2"
+          className="grid auto-rows-[220px] grid-cols-1 gap-5 md:grid-cols-4 md:grid-rows-2"
         >
-
           {/* ══ Card 1: Vision AI (2×2) ══ */}
           <div
-            className="group relative col-span-1 overflow-hidden rounded-3xl md:col-span-2 md:row-span-2"
-            style={Object.assign({}, cardBase,
-              visible ? { ...shown, transitionDelay: "100ms" } : hidden,
-              {
-                background: "var(--bg-elevated)",
-                border: "1px solid var(--border-subtle)",
-              }
-            )}
-            onMouseEnter={(e) => {
-              (e.currentTarget as HTMLElement).style.borderColor = "rgba(59,130,246,0.35)";
-              (e.currentTarget as HTMLElement).style.boxShadow = "0 0 40px rgba(59,130,246,0.10)";
-            }}
-            onMouseLeave={(e) => {
-              (e.currentTarget as HTMLElement).style.borderColor = "var(--border-subtle)";
-              (e.currentTarget as HTMLElement).style.boxShadow = "none";
-            }}
+            className="bento-card dark-card group relative col-span-1 overflow-hidden md:col-span-2 md:row-span-2"
           >
-            {/* Ambient glow */}
-            <div
-              className="pointer-events-none absolute right-0 top-0 h-56 w-56 -translate-y-1/4 translate-x-1/4 rounded-full blur-3xl"
-              style={{ background: "rgba(59,130,246,0.08)" }}
-            />
-
-            {/* Left content */}
-            <div className="relative z-10 flex h-full flex-col justify-between p-6" style={{ width: "48%" }}>
+            <HudCorners />
+            <div className="relative z-10 flex h-full flex-col justify-between p-6 w-[48%]">
               <div>
-                <div
-                  className="mb-3 flex h-11 w-11 items-center justify-center rounded-xl"
-                  style={{
-                    background: "rgba(59,130,246,0.10)",
-                    border: "1px solid rgba(59,130,246,0.20)",
-                    color: "var(--blue-400)",
-                  }}
-                >
-                  <ScanEye size={20} />
-                </div>
                 <span
-                  className="font-mono text-[10px] font-semibold uppercase tracking-widest"
-                  style={{ color: "var(--text-muted)" }}
+                  className="font-mono text-[11px] font-bold uppercase tracking-[0.15em]"
+                  style={{ color: "var(--cyan-500)" }}
                 >
-                  YOLOv8 · CV
+                  <span className="mr-2 animate-pulse">●</span>OPTICS_NET
                 </span>
-              </div>
-
-              <div>
-                <h3 className="text-xl font-bold" style={{ color: "var(--text-primary)" }}>
-                  Vision AI
-                </h3>
                 <p
-                  className="mt-2 text-xs leading-relaxed"
+                  className="mt-6 text-[13px] leading-relaxed font-mono"
                   style={{ color: "var(--text-secondary)" }}
                 >
-                  Phát hiện bệnh lá, sâu hại bằng bounding boxes — độ chính xác cao.
+                  Liên tục định vị và xử lý nhận diện tín hiệu sinh khối qua phân tích phổ ảnh.
                 </p>
+              </div>
 
-                {/* Tag pills */}
-                <div className="mt-3 flex flex-wrap gap-1.5">
-                  {["Detection", "Classify", "Alert"].map((t) => (
-                    <span
-                      key={t}
-                      className="rounded-full px-2 py-0.5 font-mono text-[9px] font-semibold"
-                      style={{
-                        background: "rgba(59,130,246,0.08)",
-                        color: "var(--blue-400)",
-                        border: "1px solid rgba(59,130,246,0.18)",
-                      }}
-                    >
-                      {t}
-                    </span>
-                  ))}
+              {/* Data tags matrix */}
+              <div className="grid grid-cols-2 gap-2 mt-4 font-mono text-[9px] font-bold tracking-widest text-[var(--cyan-400)]">
+                <div className="border border-[rgba(34,211,238,0.3)] bg-black/40 px-2 py-1.5 uppercase text-center">Scan_Rate</div>
+                <div className="border border-[rgba(34,211,238,0.3)] bg-black/40 px-2 py-1.5 uppercase text-center">30_FPS</div>
+                <div className="col-span-2 border border-[rgba(34,211,238,0.3)] bg-black/40 px-2 py-1.5 uppercase text-center flex justify-between">
+                  <span>LATENCY</span>
+                  <span>12MS</span>
                 </div>
               </div>
             </div>
 
-            {/* Camera mockup — right half */}
-            <VisionMockup />
+            <VisionMockup visible={revealed} />
           </div>
 
           {/* ══ Card 2: Telemetry (2×1) ══ */}
           <div
-            className="group relative col-span-1 flex flex-col justify-between overflow-hidden rounded-3xl p-5 md:col-span-2"
-            style={Object.assign({}, cardBase,
-              visible ? { ...shown, transitionDelay: "200ms" } : hidden,
-              {
-                background: "var(--bg-elevated)",
-                border: "1px solid var(--border-subtle)",
-              }
-            )}
-            onMouseEnter={(e) => {
-              (e.currentTarget as HTMLElement).style.borderColor = "var(--border-emerald)";
-              (e.currentTarget as HTMLElement).style.boxShadow = "0 0 36px rgba(16,185,129,0.08)";
-            }}
-            onMouseLeave={(e) => {
-              (e.currentTarget as HTMLElement).style.borderColor = "var(--border-subtle)";
-              (e.currentTarget as HTMLElement).style.boxShadow = "none";
-            }}
+            className="bento-card dark-card group relative col-span-1 flex flex-col justify-between p-5 md:col-span-2"
           >
-            {/* Ambient glow */}
-            <div
-              className="pointer-events-none absolute right-0 top-0 h-40 w-40 -translate-y-1/4 translate-x-1/4 rounded-full blur-3xl"
-              style={{ background: "rgba(16,185,129,0.07)" }}
-            />
-
-            {/* Top row */}
+            <HudCorners />
             <div className="relative z-10 flex items-start justify-between">
-              <div
-                className="flex h-10 w-10 items-center justify-center rounded-xl"
-                style={{
-                  background: "rgba(16,185,129,0.10)",
-                  border: "1px solid rgba(16,185,129,0.20)",
-                  color: "var(--emerald-400)",
-                }}
+              <span
+                className="font-mono text-[11px] font-bold uppercase tracking-[0.15em]"
+                style={{ color: "var(--cyan-500)" }}
               >
-                <TrendingUp size={18} />
-              </div>
-              <div className="flex items-center gap-1.5">
-                <span
-                  className="h-1.5 w-1.5 animate-pulse rounded-full"
-                  style={{ background: "var(--emerald-500)" }}
-                />
-                <span
-                  className="font-mono text-[9px] font-semibold uppercase tracking-widest"
-                  style={{ color: "var(--text-muted)" }}
-                >
-                  LIVE · MQTT
+                TELEMETRY_STREAM
+              </span>
+              <div className="flex items-center gap-1.5 bg-black/60 px-2 py-1 border border-[rgba(34,211,238,0.3)]">
+                <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-[var(--cyan-500)]" />
+                <span className="font-mono text-[9px] font-bold uppercase tracking-widest text-[var(--cyan-400)]">
+                  LIVE
                 </span>
               </div>
             </div>
 
-            {/* Sparkline */}
-            <div className="relative z-10 flex-1 py-2">
-              <TelemetryChart visible={visible} />
-            </div>
-
-            {/* Bottom label */}
-            <div className="relative z-10">
-              <h3 className="text-base font-bold" style={{ color: "var(--text-primary)" }}>
-                Telemetry & Time-Series
-              </h3>
-              <p className="mt-0.5 text-xs" style={{ color: "var(--text-secondary)" }}>
-                Biểu đồ sinh trưởng · MongoDB Atlas
-              </p>
+            <div className="relative z-10 flex-1 py-1">
+              <TelemetryChart visible={revealed} />
             </div>
           </div>
 
           {/* ══ Card 3: ESP32 (1×1) ══ */}
           <div
-            className="group relative col-span-1 flex flex-col justify-between overflow-hidden rounded-3xl p-5"
-            style={Object.assign({}, cardBase,
-              visible ? { ...shown, transitionDelay: "300ms" } : hidden,
-              {
-                background: "var(--bg-elevated)",
-                border: "1px solid var(--border-subtle)",
-              }
-            )}
-            onMouseEnter={(e) => {
-              (e.currentTarget as HTMLElement).style.borderColor = "rgba(255,255,255,0.18)";
-              (e.currentTarget as HTMLElement).style.boxShadow = "0 0 28px rgba(255,255,255,0.03)";
-            }}
-            onMouseLeave={(e) => {
-              (e.currentTarget as HTMLElement).style.borderColor = "var(--border-subtle)";
-              (e.currentTarget as HTMLElement).style.boxShadow = "none";
-            }}
+            className="bento-card dark-card group relative col-span-1 flex flex-col justify-between p-5"
           >
+            <HudCorners />
             <div className="flex items-start justify-between">
-              <div
-                className="flex h-10 w-10 items-center justify-center rounded-xl"
-                style={{
-                  background: "rgba(255,255,255,0.05)",
-                  border: "1px solid rgba(255,255,255,0.09)",
-                  color: "var(--text-secondary)",
-                }}
-              >
-                <Cpu size={18} />
-              </div>
               <span
-                className="font-mono text-[9px] font-semibold uppercase tracking-widest"
-                style={{ color: "var(--text-muted)" }}
+                className="font-mono text-[11px] font-bold uppercase tracking-[0.15em]"
+                style={{ color: "var(--cyan-500)" }}
               >
-                ESP32
+                SYS_HARDWARE
               </span>
             </div>
-
             <CircuitMockup />
-
-            <div>
-              <h3 className="text-base font-bold" style={{ color: "var(--text-primary)" }}>
-                Hardware Core
-              </h3>
-              <p className="mt-0.5 text-xs" style={{ color: "var(--text-secondary)" }}>
-                MCU dual-core · OTA update
-              </p>
-            </div>
           </div>
 
           {/* ══ Card 4: FCM Alerts (1×1) ══ */}
           <div
-            className="group relative col-span-1 flex flex-col justify-between overflow-hidden rounded-3xl p-5"
-            style={Object.assign({}, cardBase,
-              visible ? { ...shown, transitionDelay: "400ms" } : hidden,
-              {
-                background: "var(--bg-elevated)",
-                border: "1px solid var(--border-subtle)",
-              }
-            )}
-            onMouseEnter={(e) => {
-              (e.currentTarget as HTMLElement).style.borderColor = "var(--border-gold)";
-              (e.currentTarget as HTMLElement).style.boxShadow = "0 0 32px rgba(245,158,11,0.08)";
-            }}
-            onMouseLeave={(e) => {
-              (e.currentTarget as HTMLElement).style.borderColor = "var(--border-subtle)";
-              (e.currentTarget as HTMLElement).style.boxShadow = "none";
-            }}
+            className="bento-card dark-card group relative col-span-1 flex flex-col justify-between p-5"
           >
-            {/* Ambient glow */}
-            <div
-              className="pointer-events-none absolute right-0 top-0 h-32 w-32 -translate-y-1/4 translate-x-1/4 rounded-full blur-2xl"
-              style={{ background: "rgba(245,158,11,0.08)" }}
-            />
-
+            <HudCorners />
             <div className="relative z-10 flex items-start justify-between">
-              <div
-                className="flex h-10 w-10 items-center justify-center rounded-xl"
-                style={{
-                  background: "rgba(245,158,11,0.10)",
-                  border: "1px solid rgba(245,158,11,0.20)",
-                  color: "var(--gold-400)",
-                }}
-              >
-                <BellDot size={18} />
-              </div>
               <span
-                className="font-mono text-[9px] font-semibold uppercase tracking-widest"
-                style={{ color: "var(--text-muted)" }}
+                className="font-mono text-[11px] font-bold uppercase tracking-[0.15em]"
+                style={{ color: "var(--cyan-500)" }}
               >
-                FCM · Push
+                EVENT_LOG
               </span>
             </div>
 
-            <div className="relative z-10 flex-1 py-2">
+            <div className="relative z-10 flex-1 py-3">
               <NotificationStack />
-            </div>
-
-            <div className="relative z-10">
-              <h3 className="text-base font-bold" style={{ color: "var(--text-primary)" }}>
-                Smart Alerts
-              </h3>
-              <p className="mt-0.5 text-xs" style={{ color: "var(--text-secondary)" }}>
-                Firebase · Push tức thì
-              </p>
             </div>
           </div>
 

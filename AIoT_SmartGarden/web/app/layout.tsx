@@ -22,6 +22,8 @@ export const metadata: Metadata = {
   description: "E-commerce + IoT dashboard for hydroponics",
 };
 
+import GalaxyBackground from "@/components/ui/GalaxyBackground";
+
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -33,12 +35,13 @@ export default function RootLayout({
       className={`${inter.variable} ${jetbrainsMono.variable} h-full antialiased`}
       suppressHydrationWarning
     >
-      <body className="min-h-full flex flex-col" style={{ background: "var(--bg-base)", color: "var(--text-primary)" }} suppressHydrationWarning>
+      <body className="min-h-full flex flex-col bg-transparent" style={{ background: "transparent", color: "var(--text-primary)" }} suppressHydrationWarning>
         <AuthSessionProvider>
           <CartProvider>
             <Suspense fallback={null}>
               <AppHeader />
             </Suspense>
+            <GalaxyBackground />
             {children}
           </CartProvider>
         </AuthSessionProvider>
