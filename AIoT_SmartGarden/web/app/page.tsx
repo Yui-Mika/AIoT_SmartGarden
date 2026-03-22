@@ -26,7 +26,7 @@ export default function Home() {
     <main className="flex-1" style={{ background: "var(--bg-base)" }}>
       {!loadingDone ? <LoadingScreen onComplete={() => setLoadingDone(true)} /> : null}
 
-      <HomeHero shouldPlayVideo={loadingDone} />
+      <HomeHero isLoaded={loadingDone} shouldPlayVideo={loadingDone} />
 
       {/* ── Stats Trust Bar ── */}
       <div
