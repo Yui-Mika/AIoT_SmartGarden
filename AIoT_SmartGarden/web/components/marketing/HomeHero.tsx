@@ -19,9 +19,8 @@ export default function HomeHero({ isLoaded = false, shouldPlayVideo = true }: H
   const plexusGlowRef = useRef<HTMLDivElement | null>(null);
   const titleWrapRef = useRef<HTMLHeadingElement | null>(null);
   const sloganRef = useRef<HTMLParagraphElement | null>(null);
-  const glowPathRef = useRef<SVGTextElement | null>(null);
-  const titlePathRef = useRef<SVGTextElement | null>(null);
-  const layerFillRef = useRef<SVGTextElement | null>(null);
+  const ecoRef = useRef<SVGTextElement | null>(null);
+  const techRef = useRef<SVGTextElement | null>(null);
   const svgTitleRef = useRef<SVGSVGElement | null>(null);
   const introIncludedVideoFadeRef = useRef(false);
   const shouldPlayVideoRef = useRef(shouldPlayVideo);
@@ -43,9 +42,8 @@ export default function HomeHero({ isLoaded = false, shouldPlayVideo = true }: H
       const plexusGlow = plexusGlowRef.current;
       const titleWrap = titleWrapRef.current;
       const slogan = sloganRef.current;
-      const glowPath = glowPathRef.current;
-      const titlePath = titlePathRef.current;
-      const layerFill = layerFillRef.current;
+      const eco = ecoRef.current;
+      const tech = techRef.current;
       const svgTitle = svgTitleRef.current;
       if (
         !video ||
@@ -53,9 +51,8 @@ export default function HomeHero({ isLoaded = false, shouldPlayVideo = true }: H
         !plexusGlow ||
         !titleWrap ||
         !slogan ||
-        !glowPath ||
-        !titlePath ||
-        !layerFill ||
+        !eco ||
+        !tech ||
         !svgTitle
       ) {
         return;
@@ -65,9 +62,6 @@ export default function HomeHero({ isLoaded = false, shouldPlayVideo = true }: H
 
       /** Hero hiện ngay (nền đen); title ẩn cho đến 0.5s */
       gsap.set(hero, { visibility: "visible", opacity: 1 });
-
-      const fillGradId = `ecoFillGrad-${filterId}`;
-      const fillUrl = `url(#${fillGradId})`;
 
       gsap.set(video, {
         opacity: 0,
@@ -82,28 +76,27 @@ export default function HomeHero({ isLoaded = false, shouldPlayVideo = true }: H
       gsap.set(plexus, { opacity: 0, scale: 1, transformOrigin: "center center" });
       gsap.set(plexusGlow, { opacity: 0 });
 
-      /** Layer 3 (Fill): opacity 0 cho đến Phase 2 */
-      gsap.set(layerFill, {
-        opacity: 0,
-        attr: { fill: fillUrl, stroke: "none" },
-      });
-
-      /** Setup: Layer 1 & 2 — strokeDasharray/offset cố định 2000 (hard-coded path) */
-      gsap.set([glowPath, titlePath], {
+      /** Layer 2 (TECH): Setup stroke - initially hidden but stroke prepared */
+      gsap.set(tech, {
         visibility: "visible",
         strokeDasharray: 2000,
         strokeDashoffset: 2000,
-        opacity: 1,
+      });
+
+      /** Layer 1 (ECO): initially 0 opacity, translated slightly UP */
+      gsap.set(eco, {
+        opacity: 0,
+        y: -10,
       });
 
       const tl = gsap.timeline({ paused: true });
 
-      /** 0.5s: màn đen đã hiện (hero visible từ 0s); hiện vùng title để vẽ */
+      /** 0.5s: màn đen đã hiện; hiện vùng title để vẽ */
       tl.set(titleWrap, { autoAlpha: 1 }, 0.5);
 
-      /** 0.6s: bắt đầu vệt sáng Neon vẽ chữ (2.5s) */
+      /** Phase 1: 0.6s - bắt đầu vẽ viền TECH (2.5s) */
       tl.to(
-        [glowPath, titlePath],
+        tech,
         {
           strokeDashoffset: 0,
           duration: 2.5,
@@ -112,25 +105,19 @@ export default function HomeHero({ isLoaded = false, shouldPlayVideo = true }: H
         0.6
       );
 
-      /** 2.5s: vẽ xong — Fill + Slogan */
+      /** Phase 2: Ngay khi vẽ xong viền (0.6 + 2.5 = 3.1s) - Converge ECO */
       tl.to(
-        layerFill,
+        eco,
         {
           opacity: 1,
+          y: 0,
           duration: 0.8,
-          ease: "power2.inOut",
+          ease: "power2.out",
         },
         3.1
       );
-      tl.to(
-        [glowPath, titlePath],
-        {
-          opacity: 0,
-          duration: 0.8,
-          ease: "power2.inOut",
-        },
-        3.1
-      );
+
+      /** Phase 3: Slogan hiện lên sau khi ECO rõ nét (bắt đầu sau 3.9s) */
       tl.to(
         slogan,
         {
@@ -139,7 +126,7 @@ export default function HomeHero({ isLoaded = false, shouldPlayVideo = true }: H
           duration: 0.65,
           ease: "power2.out",
         },
-        3.1
+        3.9
       );
 
       /** 3.5s: Video Background mờ dần hiện ra; scroll mở sau khi video đã hiện */
@@ -160,7 +147,7 @@ export default function HomeHero({ isLoaded = false, shouldPlayVideo = true }: H
             ease: "sine.out",
             onComplete: unlockScroll,
           },
-          3.5
+          4.5
         );
         tl.to(
           plexus,
@@ -170,7 +157,7 @@ export default function HomeHero({ isLoaded = false, shouldPlayVideo = true }: H
             duration: 1.05,
             ease: "sine.out",
           },
-          3.5
+          4.5
         );
         tl.to(
           plexusGlow,
@@ -179,7 +166,7 @@ export default function HomeHero({ isLoaded = false, shouldPlayVideo = true }: H
             duration: 0.9,
             ease: "sine.out",
           },
-          3.62
+          4.62
         );
       } else {
         tl.to(
@@ -191,7 +178,7 @@ export default function HomeHero({ isLoaded = false, shouldPlayVideo = true }: H
             ease: "sine.out",
             onComplete: unlockScroll,
           },
-          3.5
+          4.5
         );
         tl.to(
           plexusGlow,
@@ -200,7 +187,7 @@ export default function HomeHero({ isLoaded = false, shouldPlayVideo = true }: H
             duration: 0.9,
             ease: "sine.out",
           },
-          3.62
+          4.62
         );
       }
 
@@ -346,86 +333,57 @@ export default function HomeHero({ isLoaded = false, shouldPlayVideo = true }: H
         >
           <svg
             ref={svgTitleRef}
-            viewBox="0 0 800 200"
+            viewBox="0 0 800 300"
             className="mx-auto h-auto w-full max-w-4xl overflow-visible"
             role="img"
             aria-label="ECO-TECH"
             preserveAspectRatio="xMidYMid meet"
           >
             <title>ECO-TECH</title>
-            <defs>
-              <linearGradient id={`ecoFillGrad-${filterId}`} x1="0%" y1="0%" x2="100%" y2="0%">
-                <stop offset="0%" stopColor="#ecfdf5" />
-                <stop offset="40%" stopColor="#22c55e" />
-                <stop offset="100%" stopColor="#22d3ee" />
-              </linearGradient>
-            </defs>
-            {/* Layer 1 — The Glow */}
+            
+            {/* Lớp 2 (TECH - Outline Trắng, Nằm dưới đàng hoàng, không chồng) */}
             <text
-              ref={glowPathRef}
+              ref={techRef}
               x="400"
-              y="110"
+              y="210"
               textAnchor="middle"
               dominantBaseline="middle"
               fill="none"
-              stroke="#22c55e"
-              strokeWidth="6"
-              style={{
-                filter: "blur(12px)",
-                visibility: "hidden",
-                strokeLinecap: "round",
-                strokeLinejoin: "round",
-                fontFamily: "ui-sans-serif, system-ui, sans-serif",
-                fontSize: 72,
-                fontWeight: 900,
-                letterSpacing: "0.2em",
-                textTransform: "uppercase",
-              }}
-            >
-              ECO-TECH
-            </text>
-            {/* Layer 2 — The Lead */}
-            <text
-              ref={titlePathRef}
-              x="400"
-              y="110"
-              textAnchor="middle"
-              dominantBaseline="middle"
-              fill="none"
-              stroke="#ecfeff"
-              strokeWidth="1.5"
+              stroke="#ffffff"
+              strokeWidth="2.5px"
               style={{
                 visibility: "hidden",
                 strokeLinecap: "round",
                 strokeLinejoin: "round",
                 fontFamily: "ui-sans-serif, system-ui, sans-serif",
-                fontSize: 72,
+                fontSize: 120,
                 fontWeight: 900,
                 letterSpacing: "0.2em",
                 textTransform: "uppercase",
               }}
             >
-              ECO-TECH
+              TECH
             </text>
-            {/* Layer 3 — The Fill */}
+
+            {/* Lớp 1 (ECO - Solid White, Nằm đúng bên trên, trơn tru tinh giản) */}
             <text
-              ref={layerFillRef}
+              ref={ecoRef}
               x="400"
-              y="110"
+              y="90"
               textAnchor="middle"
               dominantBaseline="middle"
-              fill={`url(#ecoFillGrad-${filterId})`}
+              fill="#ffffff"
               opacity={0}
               style={{
                 stroke: "none",
                 fontFamily: "ui-sans-serif, system-ui, sans-serif",
-                fontSize: 72,
+                fontSize: 120,
                 fontWeight: 900,
                 letterSpacing: "0.2em",
                 textTransform: "uppercase",
               }}
             >
-              ECO-TECH
+              ECO
             </text>
           </svg>
         </h1>
