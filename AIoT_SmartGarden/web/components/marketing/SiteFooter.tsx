@@ -25,7 +25,7 @@ const SOCIAL_LINKS = [
 
 export default function SiteFooter() {
   return (
-    <footer style={{ background: "var(--bg-base)", borderTop: "1px solid var(--border-subtle)" }}>
+    <footer style={{ background: "transparent", borderTop: "1px solid rgba(34, 211, 238, 0.1)" }}>
 
       {/* ── Top glow divider ── */}
       <div className="divider-glow" />

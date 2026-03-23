@@ -82,9 +82,9 @@ export default function ProductsClient({ products }: { products: Product[] }) {
         className="sticky z-30"
         style={{
           top: "72px",
-          background: "rgba(9,9,11,0.92)",
+          background: "rgba(0, 0, 0, 0.4)",
           backdropFilter: "blur(20px)",
-          borderBottom: "1px solid var(--border-subtle)",
+          borderBottom: "1px solid rgba(34, 211, 238, 0.1)",
         }}
       >
         <div className="mx-auto flex w-full max-w-7xl items-center justify-between gap-4 overflow-x-auto px-4 py-3 md:px-8">
@@ -153,10 +153,11 @@ export default function ProductsClient({ products }: { products: Product[] }) {
 
             {sortOpen && (
               <div
-                className="absolute right-0 top-full z-50 mt-2 w-44 overflow-hidden rounded-xl py-1"
+                className="absolute right-0 top-full z-50 mt-2 w-44 overflow-hidden rounded-xl py-1 glass-panel"
                 style={{
-                  background: "var(--bg-overlay)",
-                  border: "1px solid var(--border-subtle)",
+                  background: "rgba(0,0,0,0.6)",
+                  backdropFilter: "blur(16px)",
+                  border: "1px solid rgba(34, 211, 238, 0.15)",
                   boxShadow: "0 16px 48px rgba(0,0,0,0.5)",
                 }}
               >
@@ -247,8 +248,9 @@ export default function ProductsClient({ products }: { products: Product[] }) {
           <div
             className="flex flex-col items-center justify-center rounded-3xl py-28 text-center"
             style={{
-              background: "var(--bg-elevated)",
-              border: "1px solid var(--border-subtle)",
+              background: "rgba(255, 255, 255, 0.03)",
+              backdropFilter: "blur(12px)",
+              border: "1px dashed rgba(34, 211, 238, 0.2)",
             }}
           >
             <div

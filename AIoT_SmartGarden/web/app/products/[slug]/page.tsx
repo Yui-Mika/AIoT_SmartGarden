@@ -77,7 +77,7 @@ export default async function ProductDetailPage({ params }: { params: Params }) 
   const hasDiscount     = Boolean(product.salePrice);
 
   return (
-    <main className="flex flex-col" style={{ background: "var(--bg-base)", minHeight: "100dvh" }}>
+    <main className="flex flex-col bg-transparent relative" style={{ minHeight: "100dvh" }}>
 
       {/* ── Breadcrumb ── */}
       <div
@@ -85,7 +85,7 @@ export default async function ProductDetailPage({ params }: { params: Params }) 
         style={{
           paddingTop: "5rem",
           borderColor: "var(--border-subtle)",
-          background: "var(--bg-base)",
+          background: "transparent",
         }}
       >
         <div className="container-app py-4">
@@ -110,13 +110,14 @@ export default async function ProductDetailPage({ params }: { params: Params }) 
             <div
               className="overflow-hidden rounded-2xl p-4"
               style={{
-                background: "var(--bg-elevated)",
-                border: "1px solid var(--border-subtle)",
+                background: "rgba(255, 255, 255, 0.03)",
+                backdropFilter: "blur(12px)",
+                border: "1px solid rgba(34, 211, 238, 0.1)",
               }}
             >
               <div
                 className="group relative overflow-hidden rounded-xl"
-                style={{ background: "var(--bg-overlay)" }}
+                style={{ background: "rgba(0,0,0,0.4)", backdropFilter: "blur(8px)" }}
               >
                 <Image
                   src={gallery[0]}
@@ -134,8 +135,9 @@ export default async function ProductDetailPage({ params }: { params: Params }) 
                       key={`${img}-${idx}`}
                       className="overflow-hidden rounded-lg"
                       style={{
-                        background: "var(--bg-overlay)",
-                        border: "1px solid var(--border-subtle)",
+                        background: "rgba(0,0,0,0.4)",
+                        backdropFilter: "blur(8px)",
+                        border: "1px solid rgba(34, 211, 238, 0.1)",
                       }}
                     >
                       <Image
@@ -155,8 +157,9 @@ export default async function ProductDetailPage({ params }: { params: Params }) 
             <div
               className="overflow-hidden rounded-2xl"
               style={{
-                background: "var(--bg-elevated)",
-                border: "1px solid var(--border-subtle)",
+                background: "rgba(255, 255, 255, 0.03)",
+                backdropFilter: "blur(12px)",
+                border: "1px solid rgba(34, 211, 238, 0.1)",
               }}
             >
               <div
@@ -227,8 +230,9 @@ export default async function ProductDetailPage({ params }: { params: Params }) 
               <div
                 className="overflow-hidden rounded-2xl"
                 style={{
-                  background: "var(--bg-elevated)",
-                  border: "1px solid var(--border-emerald)",
+                  background: "rgba(255, 255, 255, 0.03)",
+                  backdropFilter: "blur(12px)",
+                  border: "1px solid rgba(34, 211, 238, 0.2)",
                 }}
               >
                 <div
@@ -281,8 +285,9 @@ export default async function ProductDetailPage({ params }: { params: Params }) 
             <div
               className="overflow-hidden rounded-2xl p-6 md:p-8"
               style={{
-                background: "var(--bg-elevated)",
-                border: "1px solid var(--border-subtle)",
+                background: "rgba(255, 255, 255, 0.03)",
+                backdropFilter: "blur(12px)",
+                border: "1px solid rgba(34, 211, 238, 0.1)",
               }}
             >
               {/* Category badge */}
@@ -331,8 +336,9 @@ export default async function ProductDetailPage({ params }: { params: Params }) 
               <div
                 className="mt-6 rounded-xl p-4"
                 style={{
-                  background: "var(--bg-overlay)",
-                  border: "1px solid var(--border-subtle)",
+                  background: "rgba(0,0,0,0.4)",
+                  backdropFilter: "blur(12px)",
+                  border: "1px solid rgba(34, 211, 238, 0.1)",
                 }}
               >
                 <p className="text-xs font-semibold uppercase tracking-wider" style={{ color: "var(--text-muted)" }}>
@@ -414,8 +420,9 @@ export default async function ProductDetailPage({ params }: { params: Params }) 
             <div
               className="col-span-2 rounded-2xl py-12 text-center text-sm"
               style={{
-                background: "var(--bg-elevated)",
-                border: "1px dashed var(--border-normal)",
+                background: "rgba(255, 255, 255, 0.02)",
+                backdropFilter: "blur(4px)",
+                border: "1px dashed rgba(34, 211, 238, 0.15)",
                 color: "var(--text-muted)",
               }}
             >
@@ -453,7 +460,7 @@ export default async function ProductDetailPage({ params }: { params: Params }) 
               >
                 <div
                   className="overflow-hidden rounded-xl"
-                  style={{ background: "var(--bg-overlay)" }}
+                  style={{ background: "rgba(0,0,0,0.4)", backdropFilter: "blur(8px)" }}
                 >
                   <Image
                     src={(item.images && item.images[0]) || "/window.svg"}

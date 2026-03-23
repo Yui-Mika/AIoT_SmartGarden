@@ -26,7 +26,7 @@ export default async function ProductsPage() {
   const inStock      = products.filter((p) => (p.stock ?? 1) > 0).length;
 
   return (
-    <main className="flex flex-col" style={{ background: "var(--bg-base)", minHeight: "100dvh" }}>
+    <main className="flex flex-col bg-transparent relative" style={{ minHeight: "100dvh" }}>
 
       {/* ══════════════════════════════════════
           Hero Header
@@ -51,12 +51,12 @@ export default async function ProductsPage() {
 
         {/* Dot grid background */}
         <div
-          className="pointer-events-none absolute inset-0 opacity-40"
+          className="pointer-events-none absolute inset-0 opacity-10"
           style={{
             backgroundImage: "radial-gradient(circle, rgba(255,255,255,0.04) 1px, transparent 1px)",
             backgroundSize: "32px 32px",
-            maskImage: "linear-gradient(to bottom, transparent, black 20%, black 80%, transparent)",
-            WebkitMaskImage: "linear-gradient(to bottom, transparent, black 20%, black 80%, transparent)",
+            maskImage: "linear-gradient(to bottom, transparent, black 10%, black 90%, transparent)",
+            WebkitMaskImage: "linear-gradient(to bottom, transparent, black 10%, black 90%, transparent)",
           }}
         />
 
@@ -108,8 +108,9 @@ export default async function ProductsPage() {
             <div
               className="flex shrink-0 flex-col gap-px overflow-hidden rounded-2xl"
               style={{
-                background: "var(--bg-elevated)",
-                border: "1px solid var(--border-subtle)",
+                background: "rgba(255, 255, 255, 0.03)",
+                backdropFilter: "blur(12px)",
+                border: "1px solid rgba(34, 211, 238, 0.1)",
                 minWidth: 220,
               }}
             >
@@ -225,8 +226,8 @@ export default async function ProductsPage() {
                 <div
                   className="absolute left-0 top-1/3 z-20 flex items-center gap-2 rounded-2xl px-3 py-2"
                   style={{
-                    background: "rgba(5,13,5,0.85)",
-                    border: "1px solid rgba(74,222,128,0.22)",
+                    background: "rgba(0,0,0,0.4)",
+                    border: "1px solid rgba(34,211,238,0.22)",
                     backdropFilter: "blur(12px)",
                   }}
                 >
@@ -243,8 +244,8 @@ export default async function ProductsPage() {
                 <div
                   className="absolute right-0 top-1/4 z-20 flex items-center gap-2 rounded-2xl px-3 py-2"
                   style={{
-                    background: "rgba(5,13,5,0.85)",
-                    border: "1px solid rgba(74,222,128,0.22)",
+                    background: "rgba(0,0,0,0.4)",
+                    border: "1px solid rgba(34,211,238,0.22)",
                     backdropFilter: "blur(12px)",
                   }}
                 >
@@ -259,8 +260,8 @@ export default async function ProductsPage() {
                 <div
                   className="absolute bottom-16 left-4 z-20 flex items-center gap-2 rounded-2xl px-3 py-2"
                   style={{
-                    background: "rgba(5,13,5,0.85)",
-                    border: "1px solid rgba(251,191,36,0.22)",
+                    background: "rgba(0,0,0,0.4)",
+                    border: "1px solid rgba(34,211,238,0.22)",
                     backdropFilter: "blur(12px)",
                   }}
                 >
@@ -351,8 +352,8 @@ export default async function ProductsPage() {
                 ].map(({ icon: Icon, label, value }) => (
                   <div
                     key={label}
-                    className="flex items-center gap-3 rounded-xl px-3 py-2.5"
-                    style={{ background: "var(--bg-elevated)", border: "1px solid var(--border-subtle)" }}
+                    className="flex items-center gap-3 rounded-xl px-3 py-2.5 spec-glow-item"
+                    style={{ background: "rgba(255, 255, 255, 0.03)", backdropFilter: "blur(12px)", border: "1px solid rgba(34, 211, 238, 0.1)" }}
                   >
                     <Icon size={13} style={{ color: "var(--emerald-400)", flexShrink: 0 }} />
                     <div>
