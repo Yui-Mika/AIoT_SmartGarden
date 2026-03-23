@@ -1,7 +1,13 @@
+"use client";
+
 import Link from "next/link";
 import { ArrowRight, LayoutDashboard, Cpu } from "lucide-react";
+import { useLanguage } from "@/components/providers/LanguageProvider";
 
 export default function HomeHero() {
+  const { locale } = useLanguage();
+  const t = (vi: string, en: string) => (locale === "vi" ? vi : en);
+
   return (
     <section
       className="relative w-full overflow-hidden"
@@ -61,7 +67,7 @@ export default function HomeHero() {
               className="font-mono text-xs font-semibold uppercase tracking-[0.15em]"
               style={{ color: "var(--emerald-400)" }}
             >
-              System Online — AIoT v2.0
+              {t("Hệ thống trực tuyến — AIoT v2.0", "System Online — AIoT v2.0")}
             </span>
           </div>
 
@@ -70,9 +76,9 @@ export default function HomeHero() {
             className="animate-fade-up text-5xl font-black leading-[1.06] tracking-tight md:text-6xl lg:text-7xl"
             style={{ animationDelay: "80ms" }}
           >
-            <span style={{ color: "var(--text-primary)" }}>Tương lai </span>
+            <span style={{ color: "var(--text-primary)" }}>{t("Tương lai", "The future") + " "}</span>
             <br />
-            <span className="text-gradient-hero">của mảng xanh.</span>
+            <span className="text-gradient-hero">{t("của mảng xanh.", "of green living.")}</span>
           </h1>
 
           {/* Description */}
@@ -80,9 +86,10 @@ export default function HomeHero() {
             className="animate-fade-up mt-5 max-w-lg text-sm leading-relaxed md:text-base"
             style={{ color: "var(--text-secondary)", animationDelay: "180ms" }}
           >
-            Hệ sinh thái Smart Garden kết nối vạn vật — giám sát môi trường
-            realtime, phân tích hình ảnh bằng AI và tự động hóa toàn bộ
-            quá trình sinh trưởng.
+            {t(
+              "Hệ sinh thái Smart Garden kết nối vạn vật — giám sát môi trường realtime, phân tích hình ảnh bằng AI và tự động hóa toàn bộ quá trình sinh trưởng.",
+              "The Smart Garden ecosystem connects everything: realtime environment monitoring, AI image analysis, and end-to-end growth automation."
+            )}
           </p>
 
           {/* CTA buttons */}
@@ -92,12 +99,12 @@ export default function HomeHero() {
           >
             <Link href="/dashboard" className="btn-emerald gap-2 px-6 py-3 text-sm">
               <LayoutDashboard size={15} />
-              Truy cập Dashboard
+              {t("Truy cập Dashboard", "Open Dashboard")}
               <ArrowRight size={13} />
             </Link>
             <Link href="/products" className="btn-ghost gap-2 px-6 py-3 text-sm">
               <Cpu size={15} />
-              Khám phá thiết bị
+              {t("Khám phá thiết bị", "Explore Devices")}
             </Link>
           </div>
 
@@ -113,8 +120,8 @@ export default function HomeHero() {
             {[
               { value: "99.9%",  label: "Uptime" },
               { value: "<200ms", label: "Latency" },
-              { value: "6+",     label: "Sensors" },
-              { value: "24/7",   label: "Monitoring" },
+              { value: "6+",     label: t("Cảm biến", "Sensors") },
+              { value: "24/7",   label: t("Giám sát", "Monitoring") },
             ].map(({ value, label }) => (
               <div key={label}>
                 <p className="text-xl font-black" style={{ color: "var(--text-primary)" }}>

@@ -2,15 +2,29 @@
 
 import { useSession } from "next-auth/react";
 import { Bell } from "lucide-react";
+import { useLanguage } from "@/components/providers/LanguageProvider";
 
 export default function AdminHeader() {
   const { data: session } = useSession();
+  const { locale, toggleLocale } = useLanguage();
+
+  const t = (vi: string, en: string) => (locale === "vi" ? vi : en);
 
   return (
     <header style={{ borderBottom: "1px solid var(--border-subtle)", background: "var(--bg-elevated)" }}>
       <div className="flex items-center justify-end px-6 py-4">
 
         <div className="flex items-center gap-4">
+          <button
+            type="button"
+            onClick={toggleLocale}
+            className="rounded-lg px-2.5 py-2 text-xs font-semibold"
+            style={{ color: "var(--text-secondary)", border: "1px solid var(--border-subtle)" }}
+            aria-label={t("Đổi ngôn ngữ", "Switch language")}
+          >
+            {locale === "vi" ? "VI" : "EN"}
+          </button>
+
           <button
             className="relative rounded-lg p-2 transition"
             style={{ color: "var(--text-secondary)", border: "1px solid var(--border-subtle)" }}

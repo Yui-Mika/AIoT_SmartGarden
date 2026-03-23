@@ -4,17 +4,20 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { LayoutDashboard, Users, Package, ShoppingCart, Zap, LogOut } from "lucide-react";
 import { signOut } from "next-auth/react";
+import { useLanguage } from "@/components/providers/LanguageProvider";
 
 const navigationItems = [
-  { label: "Bảng điều khiển", href: "/admin", icon: LayoutDashboard },
-  { label: "Người dùng", href: "/admin/users", icon: Users },
-  { label: "Sản phẩm", href: "/admin/products", icon: Package },
-  { label: "Đơn hàng", href: "/admin/orders", icon: ShoppingCart },
-  { label: "Chẩn đoán AI", href: "/admin/diagnostics", icon: Zap },
+  { vi: "Bảng điều khiển", en: "Dashboard", href: "/admin", icon: LayoutDashboard },
+  { vi: "Người dùng", en: "Users", href: "/admin/users", icon: Users },
+  { vi: "Sản phẩm", en: "Products", href: "/admin/products", icon: Package },
+  { vi: "Đơn hàng", en: "Orders", href: "/admin/orders", icon: ShoppingCart },
+  { vi: "Chẩn đoán AI", en: "AI Diagnostics", href: "/admin/diagnostics", icon: Zap },
 ];
 
 export default function AdminSidebar() {
   const pathname = usePathname();
+  const { locale } = useLanguage();
+  const t = (vi: string, en: string) => (locale === "vi" ? vi : en);
 
   return (
     <aside
@@ -56,7 +59,7 @@ export default function AdminSidebar() {
               }}
             >
               <Icon className="h-4 w-4" />
-              {item.label}
+              {t(item.vi, item.en)}
             </Link>
           );
         })}
@@ -69,7 +72,7 @@ export default function AdminSidebar() {
           style={{ color: "var(--danger)", border: "1px solid rgba(239,68,68,0.25)" }}
         >
           <LogOut className="h-4 w-4" />
-          Đăng xuất
+          {t("Đăng xuất", "Sign out")}
         </button>
       </div>
     </aside>

@@ -2,19 +2,20 @@
 
 import Link from "next/link";
 import { Mail, Phone, MapPin, Leaf, Code2, MessageSquare, Briefcase } from "lucide-react";
+import { useLanguage } from "@/components/providers/LanguageProvider";
 
 const EXPLORE_LINKS = [
-  { href: "/",          label: "Trang chủ" },
-  { href: "/products",  label: "Sản phẩm" },
-  { href: "/dashboard", label: "Dashboard" },
-  { href: "/about",     label: "About Us" },
+  { href: "/",          vi: "Trang chủ", en: "Home" },
+  { href: "/products",  vi: "Sản phẩm", en: "Products" },
+  { href: "/dashboard", vi: "Bảng điều khiển", en: "Dashboard" },
+  { href: "/about",     vi: "Về chúng tôi", en: "About Us" },
 ];
 
 const SUPPORT_LINKS = [
-  { href: "/about",   label: "Về chúng tôi" },
-  { href: "/auth/login", label: "Đăng nhập" },
-  { href: "/cart",    label: "Giỏ hàng" },
-  { href: "/profile", label: "Tài khoản" },
+  { href: "/about",   vi: "Về chúng tôi", en: "About us" },
+  { href: "/auth/login", vi: "Đăng nhập", en: "Sign in" },
+  { href: "/cart",    vi: "Giỏ hàng", en: "Cart" },
+  { href: "/profile", vi: "Tài khoản", en: "Account" },
 ];
 
 const SOCIAL_LINKS = [
@@ -24,6 +25,9 @@ const SOCIAL_LINKS = [
 ];
 
 export default function SiteFooter() {
+  const { locale } = useLanguage();
+  const t = (vi: string, en: string) => (locale === "vi" ? vi : en);
+
   return (
     <footer style={{ background: "var(--bg-base)", borderTop: "1px solid var(--border-subtle)" }}>
 
@@ -60,7 +64,10 @@ export default function SiteFooter() {
             className="mt-4 max-w-sm text-sm leading-relaxed"
             style={{ color: "var(--text-muted)" }}
           >
-            Nền tảng AIoT thủy canh thông minh — giám sát thời gian thực, cảnh báo tự động và quản lý cây trồng hiệu quả từ mọi nơi.
+            {t(
+              "Nền tảng AIoT thủy canh thông minh — giám sát thời gian thực, cảnh báo tự động và quản lý cây trồng hiệu quả từ mọi nơi.",
+              "Smart hydroponic AIoT platform with realtime monitoring, automatic alerts, and efficient crop management from anywhere."
+            )}
           </p>
 
           {/* Social links */}
@@ -85,10 +92,10 @@ export default function SiteFooter() {
             className="mb-4 text-xs font-semibold uppercase tracking-[0.12em]"
             style={{ color: "var(--text-muted)" }}
           >
-            Khám phá
+            {t("Khám phá", "Explore")}
           </p>
           <ul className="space-y-3">
-            {EXPLORE_LINKS.map(({ href, label }) => (
+            {EXPLORE_LINKS.map(({ href, vi, en }) => (
               <li key={href}>
                 <Link
                   href={href}
@@ -101,7 +108,7 @@ export default function SiteFooter() {
                     ((e.currentTarget as HTMLElement).style.color = "var(--text-secondary)")
                   }
                 >
-                  {label}
+                  {t(vi, en)}
                 </Link>
               </li>
             ))}
@@ -114,7 +121,7 @@ export default function SiteFooter() {
             className="mb-4 text-xs font-semibold uppercase tracking-[0.12em]"
             style={{ color: "var(--text-muted)" }}
           >
-            Liên hệ
+            {t("Liên hệ", "Contact")}
           </p>
           <ul className="space-y-3">
             <li className="flex items-center gap-2.5">
@@ -145,7 +152,7 @@ export default function SiteFooter() {
             <li className="flex items-start gap-2.5">
               <MapPin size={13} style={{ color: "var(--emerald-500)", flexShrink: 0, marginTop: 2 }} />
               <span className="text-sm" style={{ color: "var(--text-secondary)" }}>
-                Ho Chi Minh City, Vietnam
+                  {t("Thành phố Hồ Chí Minh, Việt Nam", "Ho Chi Minh City, Vietnam")}
               </span>
             </li>
           </ul>
@@ -160,7 +167,7 @@ export default function SiteFooter() {
           >
             <span className="status-dot status-online" style={{ width: 6, height: 6 }} />
             <span className="text-xs font-medium" style={{ color: "var(--emerald-400)" }}>
-              Hệ thống đang hoạt động
+              {t("Hệ thống đang hoạt động", "System online")}
             </span>
           </div>
         </div>
@@ -176,7 +183,7 @@ export default function SiteFooter() {
             © 2026 Smart Garden AIoT. All rights reserved.
           </p>
           <div className="flex items-center gap-5">
-            {SUPPORT_LINKS.slice(0, 2).map(({ href, label }) => (
+            {SUPPORT_LINKS.slice(0, 2).map(({ href, vi, en }) => (
               <Link
                 key={href}
                 href={href}
@@ -189,7 +196,7 @@ export default function SiteFooter() {
                   ((e.currentTarget as HTMLElement).style.color = "var(--text-muted)")
                 }
               >
-                {label}
+                {t(vi, en)}
               </Link>
             ))}
           </div>

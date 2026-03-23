@@ -3,6 +3,7 @@
 import Image from "next/image";
 import { useEffect, useRef, useState } from "react";
 import { ScanEye, TrendingUp, Cpu, BellDot, Wifi, RefreshCw, AlertTriangle, CheckCircle } from "lucide-react";
+import { useLanguage } from "@/components/providers/LanguageProvider";
 
 /* ─────────────────────────────────────
    Scroll-reveal hook
@@ -267,22 +268,25 @@ function CircuitMockup() {
    FCM — stacked notification preview
 ───────────────────────────────────── */
 function NotificationStack() {
+  const { locale } = useLanguage();
+  const t = (vi: string, en: string) => (locale === "vi" ? vi : en);
+
   const NOTIFS = [
     {
       icon: AlertTriangle,
       iconColor: "var(--gold-500)",
       bg: "rgba(245,158,11,0.08)",
       border: "rgba(245,158,11,0.20)",
-      title: "TDS thấp ngưỡng",
-      sub: "SGP-001 · 2 phút trước",
+      title: t("TDS thấp ngưỡng", "TDS below threshold"),
+      sub: t("SGP-001 · 2 phút trước", "SGP-001 · 2 minutes ago"),
     },
     {
       icon: CheckCircle,
       iconColor: "var(--emerald-500)",
       bg: "rgba(16,185,129,0.06)",
       border: "rgba(16,185,129,0.18)",
-      title: "pH ổn định 6.2",
-      sub: "SGP-001 · 15 phút trước",
+      title: t("pH ổn định 6.2", "pH stable at 6.2"),
+      sub: t("SGP-001 · 15 phút trước", "SGP-001 · 15 minutes ago"),
     },
   ];
 
@@ -320,6 +324,8 @@ function NotificationStack() {
 ───────────────────────────────────── */
 export default function BentoGrid() {
   const { ref, visible } = useScrollReveal();
+  const { locale } = useLanguage();
+  const t = (vi: string, en: string) => (locale === "vi" ? vi : en);
 
   const cardBase: React.CSSProperties = {
     transition: "opacity 0.7s ease, transform 0.7s ease, border-color 0.25s ease, box-shadow 0.25s ease",
@@ -379,11 +385,11 @@ export default function BentoGrid() {
                 className="text-3xl font-bold leading-tight md:text-4xl"
                 style={{ color: "var(--text-primary)" }}
               >
-                Trí tuệ nhân tạo{" "}
-                <span className="text-gradient-emerald">hội tụ.</span>
+                {t("Trí tuệ nhân tạo", "Artificial intelligence") + " "}
+                <span className="text-gradient-emerald">{t("hội tụ.", "unified.")}</span>
               </h2>
               <p className="mt-2 text-sm" style={{ color: "var(--text-secondary)" }}>
-                Kiến trúc phần cứng và phần mềm hoạt động liền mạch.
+                {t("Kiến trúc phần cứng và phần mềm hoạt động liền mạch.", "Hardware and software architecture working in seamless sync.")}
               </p>
             </div>
           </div>
@@ -449,7 +455,10 @@ export default function BentoGrid() {
                   className="mt-2 text-xs leading-relaxed"
                   style={{ color: "var(--text-secondary)" }}
                 >
-                  Phát hiện bệnh lá, sâu hại bằng bounding boxes — độ chính xác cao.
+                  {t(
+                    "Phát hiện bệnh lá, sâu hại bằng bounding boxes — độ chính xác cao.",
+                    "Detect leaf diseases and pests with high-accuracy bounding boxes."
+                  )}
                 </p>
 
                 {/* Tag pills */}
@@ -537,7 +546,7 @@ export default function BentoGrid() {
                 Telemetry & Time-Series
               </h3>
               <p className="mt-0.5 text-xs" style={{ color: "var(--text-secondary)" }}>
-                Biểu đồ sinh trưởng · MongoDB Atlas
+                {t("Biểu đồ sinh trưởng · MongoDB Atlas", "Growth charts · MongoDB Atlas")}
               </p>
             </div>
           </div>
@@ -587,7 +596,7 @@ export default function BentoGrid() {
                 Hardware Core
               </h3>
               <p className="mt-0.5 text-xs" style={{ color: "var(--text-secondary)" }}>
-                MCU dual-core · OTA update
+                {t("MCU dual-core · OTA update", "Dual-core MCU · OTA update")}
               </p>
             </div>
           </div>
@@ -645,7 +654,7 @@ export default function BentoGrid() {
                 Smart Alerts
               </h3>
               <p className="mt-0.5 text-xs" style={{ color: "var(--text-secondary)" }}>
-                Firebase · Push tức thì
+                {t("Firebase · Push tức thì", "Firebase · Instant push")}
               </p>
             </div>
           </div>

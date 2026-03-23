@@ -1,3 +1,5 @@
+"use client";
+
 import Link from "next/link";
 import { ArrowRight, CheckCircle } from "lucide-react";
 import ProductCard from "@/components/marketing/ProductCard";
@@ -6,16 +8,20 @@ import HomeHero from "@/components/marketing/HomeHero";
 import BentoGrid from "@/components/marketing/BentoGrid";
 import TerminalCta from "@/components/marketing/TerminalCta";
 import SiteFooter from "@/components/marketing/SiteFooter";
-
-const TRUST_ITEMS = [
-  "500+ vườn đang hoạt động",
-  "YOLOv8 Vision AI",
-  "MQTT Realtime < 200ms",
-  "MongoDB Atlas Time-Series",
-  "Firebase Push Alerts",
-];
+import { useLanguage } from "@/components/providers/LanguageProvider";
 
 export default function Home() {
+  const { locale } = useLanguage();
+  const t = (vi: string, en: string) => (locale === "vi" ? vi : en);
+
+  const trustItems = [
+    t("500+ vườn đang hoạt động", "500+ active gardens"),
+    "YOLOv8 Vision AI",
+    "MQTT Realtime < 200ms",
+    "MongoDB Atlas Time-Series",
+    t("Firebase Push Alerts", "Firebase Push Alerts"),
+  ];
+
   return (
     <main className="flex-1" style={{ background: "var(--bg-base)" }}>
       <HomeHero />
@@ -30,7 +36,7 @@ export default function Home() {
         }}
       >
         <div className="mx-auto flex w-max items-center gap-8 px-6 py-3.5 md:w-full md:max-w-6xl md:justify-center md:px-6">
-          {TRUST_ITEMS.map((item) => (
+          {trustItems.map((item) => (
             <span
               key={item}
               className="flex shrink-0 items-center gap-2 text-xs font-medium"
@@ -80,12 +86,15 @@ export default function Home() {
                 className="text-3xl font-bold leading-tight md:text-4xl"
                 style={{ color: "var(--text-primary)" }}
               >
-                Nâng cấp{" "}
+                {t("Nâng cấp", "Upgrade")}{" "}
                 <span className="text-gradient-gold">cấu hình</span>{" "}
-                của bạn.
+                {t("của bạn.", "your setup.")}
               </h2>
               <p className="mt-2 text-sm" style={{ color: "var(--text-secondary)" }}>
-                Thiết bị IoT và vật tư chuyên dụng cho vườn thủy canh thông minh.
+                {t(
+                  "Thiết bị IoT và vật tư chuyên dụng cho vườn thủy canh thông minh.",
+                  "IoT devices and specialized supplies for smart hydroponic gardens."
+                )}
               </p>
             </div>
           </div>
@@ -98,7 +107,7 @@ export default function Home() {
               color: "var(--text-secondary)",
             }}
           >
-            Xem tất cả sản phẩm
+            {t("Xem tất cả sản phẩm", "View all products")}
             <ArrowRight size={13} />
           </Link>
         </div>

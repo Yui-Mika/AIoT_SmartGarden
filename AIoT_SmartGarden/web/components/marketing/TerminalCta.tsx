@@ -1,8 +1,12 @@
 "use client";
 
 import { Terminal } from "lucide-react";
+import { useLanguage } from "@/components/providers/LanguageProvider";
 
 export default function TerminalCta() {
+  const { locale } = useLanguage();
+  const t = (vi: string, en: string) => (locale === "vi" ? vi : en);
+
   return (
     <section
       className="mx-auto w-full max-w-4xl px-4 md:px-6"
@@ -34,7 +38,7 @@ export default function TerminalCta() {
               className="font-mono text-xs"
               style={{ color: "var(--text-muted)" }}
             >
-              bash — root@smart-garden
+              {t("bash — root@smart-garden", "bash — root@smart-garden")}
             </span>
           </div>
         </div>
@@ -57,10 +61,10 @@ export default function TerminalCta() {
               Core modules ready.
             </p>
             <p style={{ color: "var(--text-secondary)" }}>
-              Khu vườn của bạn đã sẵn sàng trực tuyến.
+              {t("Khu vườn của bạn đã sẵn sàng trực tuyến.", "Your garden is now online.")}
             </p>
             <p style={{ color: "var(--text-secondary)" }}>
-              Nhập email để tham gia hệ sinh thái:
+              {t("Nhập email để tham gia hệ sinh thái:", "Enter your email to join the ecosystem:")}
             </p>
           </div>
 
@@ -95,13 +99,13 @@ export default function TerminalCta() {
               type="button"
               className="btn-emerald flex items-center justify-center gap-2 rounded-lg px-6 py-3 font-mono text-sm font-bold uppercase tracking-widest"
             >
-              Execute
+              {t("Thực thi", "Execute")}
             </button>
           </div>
 
           {/* Bottom hint */}
           <p className="mt-4 text-xs" style={{ color: "var(--text-muted)" }}>
-            // Không spam. Huỷ đăng ký bất kỳ lúc nào.
+            {t("// Không spam. Huỷ đăng ký bất kỳ lúc nào.", "// No spam. Unsubscribe anytime.")}
           </p>
         </div>
       </div>

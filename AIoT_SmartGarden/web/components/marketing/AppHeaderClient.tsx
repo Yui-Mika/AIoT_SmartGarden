@@ -5,12 +5,13 @@ import { useEffect, useState, useRef } from "react";
 import { useSession, signOut } from "next-auth/react";
 import { ShoppingCart, User, LogOut, LayoutDashboard, ChevronDown, Menu, X } from "lucide-react";
 import { usePathname } from "next/navigation";
+import { useLanguage } from "@/components/providers/LanguageProvider";
 
 const NAV_LINKS = [
-  { href: "/",          label: "Trang chủ" },
-  { href: "/products",  label: "Sản phẩm" },
-  { href: "/dashboard", label: "Dashboard" },
-  { href: "/about",     label: "About Us" },
+  { href: "/",          vi: "Trang chủ", en: "Home" },
+  { href: "/products",  vi: "Sản phẩm", en: "Products" },
+  { href: "/dashboard", vi: "Bảng điều khiển", en: "Dashboard" },
+  { href: "/about",     vi: "Về chúng tôi", en: "About Us" },
 ];
 
 export default function AppHeaderClient() {
@@ -21,6 +22,9 @@ export default function AppHeaderClient() {
   const pathname                            = usePathname();
   const isAdminRoute                        = pathname.startsWith("/admin");
   const dropdownRef                         = useRef<HTMLDivElement>(null);
+  const { locale, toggleLocale }            = useLanguage();
+
+  const t = (vi: string, en: string) => (locale === "vi" ? vi : en);
 
   /* ---------- scroll detection ---------- */
   useEffect(() => {
@@ -96,7 +100,7 @@ export default function AppHeaderClient() {
 
             {/* ── Desktop Nav ── */}
             <nav className="hidden items-center gap-1 md:flex">
-              {NAV_LINKS.map(({ href, label }) => (
+              {NAV_LINKS.map(({ href, vi, en }) => (
                 <Link
                   key={href}
                   href={href}
@@ -118,19 +122,32 @@ export default function AppHeaderClient() {
                     }
                   }}
                 >
-                  {label}
+                  {t(vi, en)}
                 </Link>
               ))}
             </nav>
 
             {/* ── Right section ── */}
             <div className="flex items-center gap-2 md:gap-3">
+              <button
+                type="button"
+                onClick={toggleLocale}
+                className="hidden rounded-lg border px-2.5 py-2 text-xs font-semibold md:inline-flex"
+                style={{
+                  color: "var(--text-secondary)",
+                  borderColor: "var(--border-subtle)",
+                  background: "rgba(255,255,255,0.02)",
+                }}
+                aria-label={t("Đổi ngôn ngữ", "Switch language")}
+              >
+                {locale === "vi" ? "VI" : "EN"}
+              </button>
 
               {/* Cart icon */}
               <Link
                 href="/cart"
                 className="btn-icon relative hidden md:inline-flex"
-                title="Giỏ hàng"
+                title={t("Giỏ hàng", "Cart")}
               >
                 <ShoppingCart size={17} />
               </Link>
@@ -216,7 +233,7 @@ export default function AppHeaderClient() {
                         }}
                       >
                         <LayoutDashboard size={14} />
-                        Dashboard
+                        {t("Bảng điều khiển", "Dashboard")}
                       </Link>
 
                       <Link
@@ -234,7 +251,7 @@ export default function AppHeaderClient() {
                         }}
                       >
                         <User size={14} />
-                        Tài khoản
+                        {t("Tài khoản", "Account")}
                       </Link>
 
                       <div style={{ borderTop: "1px solid var(--border-subtle)" }} className="mt-1 pt-1">
@@ -250,7 +267,7 @@ export default function AppHeaderClient() {
                           }}
                         >
                           <LogOut size={14} />
-                          Đăng xuất
+                          {t("Đăng xuất", "Sign out")}
                         </button>
                       </div>
                     </div>
@@ -259,7 +276,7 @@ export default function AppHeaderClient() {
               ) : (
                 /* Login button */
                 <Link href="/auth/login" className="btn-emerald text-sm">
-                  Đăng nhập
+                  {t("Đăng nhập", "Sign in")}
                 </Link>
               )}
 
@@ -290,7 +307,20 @@ export default function AppHeaderClient() {
           }}
         >
           <nav className="flex flex-col gap-1 px-4 py-4">
-            {NAV_LINKS.map(({ href, label }) => (
+            <button
+              type="button"
+              onClick={toggleLocale}
+              className="mb-2 w-full rounded-xl border px-4 py-3 text-left text-sm font-semibold"
+              style={{
+                color: "var(--text-secondary)",
+                borderColor: "var(--border-subtle)",
+                background: "rgba(255,255,255,0.02)",
+              }}
+            >
+              {t("Ngôn ngữ", "Language")}: {locale === "vi" ? "VI" : "EN"}
+            </button>
+
+            {NAV_LINKS.map(({ href, vi, en }) => (
               <Link
                 key={href}
                 href={href}
@@ -302,17 +332,17 @@ export default function AppHeaderClient() {
                   borderLeft: isActive(href) ? "2px solid var(--emerald-500)" : "2px solid transparent",
                 }}
               >
-                {label}
+                {t(vi, en)}
               </Link>
             ))}
 
             <div className="mt-4" style={{ borderTop: "1px solid var(--border-subtle)", paddingTop: "1rem" }}>
               <Link href="/cart" className="flex items-center gap-3 rounded-xl px-4 py-3.5 text-base font-medium" style={{ color: "var(--text-secondary)" }}>
-                <ShoppingCart size={18} /> Giỏ hàng
+                <ShoppingCart size={18} /> {t("Giỏ hàng", "Cart")}
               </Link>
               {!session && (
                 <Link href="/auth/login" className="btn-emerald mt-3 w-full justify-center text-base">
-                  Đăng nhập
+                  {t("Đăng nhập", "Sign in")}
                 </Link>
               )}
               {session && (
@@ -321,7 +351,7 @@ export default function AppHeaderClient() {
                   className="mt-2 flex w-full items-center gap-3 rounded-xl px-4 py-3.5 text-base font-medium"
                   style={{ color: "var(--danger)" }}
                 >
-                  <LogOut size={18} /> Đăng xuất
+                  <LogOut size={18} /> {t("Đăng xuất", "Sign out")}
                 </button>
               )}
             </div>

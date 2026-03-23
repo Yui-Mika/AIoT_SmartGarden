@@ -4,6 +4,7 @@ import "./globals.css";
 import AppHeader from "@/components/marketing/AppHeader";
 import AuthSessionProvider from "@/components/providers/AuthSessionProvider";
 import { CartProvider } from "@/components/providers/CartProvider";
+import { LanguageProvider } from "@/components/providers/LanguageProvider";
 import { Suspense } from "react";
 
 const inter = Inter({
@@ -34,14 +35,16 @@ export default function RootLayout({
       suppressHydrationWarning
     >
       <body className="min-h-full flex flex-col" style={{ background: "var(--bg-base)", color: "var(--text-primary)" }} suppressHydrationWarning>
-        <AuthSessionProvider>
-          <CartProvider>
-            <Suspense fallback={null}>
-              <AppHeader />
-            </Suspense>
-            {children}
-          </CartProvider>
-        </AuthSessionProvider>
+        <LanguageProvider>
+          <AuthSessionProvider>
+            <CartProvider>
+              <Suspense fallback={null}>
+                <AppHeader />
+              </Suspense>
+              {children}
+            </CartProvider>
+          </AuthSessionProvider>
+        </LanguageProvider>
       </body>
     </html>
   );
