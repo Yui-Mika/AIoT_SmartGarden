@@ -11,71 +11,16 @@ if (typeof window !== "undefined") gsap.registerPlugin(ScrollTrigger, useGSAP);
 export default function TerminalCta() {
   const containerRef = useRef<HTMLElement>(null);
   
-  useGSAP(() => {
-    const tl = gsap.timeline({
-      scrollTrigger: {
-        trigger: containerRef.current,
-        start: "top 85%",
-        toggleActions: "play none none reverse"
-      }
-    });
-
-    tl.fromTo(".term-title",
-      { opacity: 0, filter: "blur(10px)", letterSpacing: "0.5em" },
-      { opacity: 1, filter: "blur(0px)", letterSpacing: "0.2em", duration: 1.2, ease: "expo.out" }
-    )
-    .fromTo(".term-subtitle",
-      { opacity: 0, filter: "blur(4px)" },
-      { opacity: 1, filter: "blur(0px)", duration: 0.8, ease: "expo.out", stagger: 0.15 },
-      "-=0.9"
-    )
-    .fromTo(".term-box",
-      { opacity: 0, clipPath: "inset(50% 0 50% 0)" },
-      { 
-        opacity: 1, clipPath: "inset(0% 0 0% 0)", duration: 1.2, ease: "expo.out",
-        onComplete: () => setRevealed(true),
-        onReverseComplete: () => setRevealed(false)
-      },
-      "-=0.6"
-    );
-
-  }, { scope: containerRef });
-  const targetCmd = "./initialize_garden.sh";
-  const [cmd, setCmd] = useState("");
-  const [step, setStep] = useState(0);
-  const [revealed, setRevealed] = useState(false);
-
   useEffect(() => {
-    if (!revealed) {
-      setStep(0);
-      setCmd("");
-      return;
-    }
-
-    let i = 0;
-    const interval = setInterval(() => {
-      setCmd(targetCmd.slice(0, i + 1));
-      i++;
-      if (i === targetCmd.length) {
-        clearInterval(interval);
-        setTimeout(() => setStep(1), 500);
-        setTimeout(() => setStep(2), 1200);
-    setTimeout(() => setStep(3), 1800);
-      }
-    }, 45);
-
-    return () => clearInterval(interval);
+    // Empty: Master Timeline controls DOM directly
   }, []);
 
   return (
     <section
       ref={containerRef as any}
-      className="mx-auto w-full max-w-4xl px-4 md:px-6 relative z-10"
-      style={{ marginTop: "3rem", marginBottom: "8rem" }}
+      className="terminal-section absolute inset-0 z-40 opacity-0 invisible flex flex-col justify-center w-full max-w-4xl mx-auto px-4 md:px-6"
     >
-      <div
-        className="flex flex-col items-center"
-      >
+      <div className="flex flex-col items-center w-full">
         {/* ── Section header ── */}
         <div className="mb-12 flex flex-col items-center justify-center text-center w-full">
           <span
@@ -128,44 +73,34 @@ export default function TerminalCta() {
         <div className="p-6 font-mono text-sm md:p-8 min-h-[300px]">
           {/* Command line */}
           <div className="mb-1" style={{ color: "var(--cyan-400)" }}>
-            $ {cmd}
-            {cmd.length < targetCmd.length && <span className="animate-pulse">_</span>}
+            $ <span id="term-cmd"></span>
+            <span className="term-cursor animate-pulse">_</span>
           </div>
 
           {/* Output lines */}
           <div className="mb-5 space-y-1" style={{ color: "var(--text-secondary)" }}>
-            {step >= 1 && (
-              <p className="animate-fade-up">
-                <span style={{ color: "var(--cyan-600)" }}>[....] </span>
-                Loading protocols...
+            <p className="term-output-1 opacity-0 invisible" style={{ transform: "translateY(8px)" }}>
+              <span style={{ color: "var(--cyan-600)" }}>[....] </span>
+              Loading protocols...
+            </p>
+            <p className="term-output-2 opacity-0 invisible" style={{ transform: "translateY(8px)" }}>
+              <span style={{ color: "var(--cyan-400)" }}>[OK]   </span>
+              Core modules ready.
+            </p>
+            <div className="term-output-3 opacity-0 invisible" style={{ transform: "translateY(8px)" }}>
+              <p style={{ color: "var(--text-secondary)", marginTop: "8px" }}>
+                Khu vực sinh thái số đã trực tuyến hoàn toàn.
               </p>
-            )}
-            {step >= 2 && (
-              <p className="animate-fade-up">
-                <span style={{ color: "var(--cyan-400)" }}>[OK]   </span>
-                Core modules ready.
+              <p style={{ color: "var(--text-secondary)" }}>
+                Nhập truy cập Root:
               </p>
-            )}
-            {step >= 3 && (
-              <div className="animate-fade-up">
-                <p style={{ color: "var(--text-secondary)", marginTop: "8px" }}>
-                  Khu vực sinh thái số đã trực tuyến hoàn toàn.
-                </p>
-                <p style={{ color: "var(--text-secondary)" }}>
-                  Nhập truy cập Root:
-                </p>
-              </div>
-            )}
+            </div>
           </div>
 
           {/* Input row */}
           <div
-            className="flex flex-col gap-3 sm:flex-row sm:items-stretch transition-all duration-700 ease-out"
-            style={{
-              opacity: step >= 3 ? 1 : 0,
-              transform: step >= 3 ? "translateY(0)" : "translateY(15px)",
-              pointerEvents: step >= 3 ? "auto" : "none",
-            }}
+            className="term-input-row flex flex-col gap-3 sm:flex-row sm:items-stretch opacity-0 invisible"
+            style={{ transform: "translateY(15px)" }}
           >
             <div
               className="flex flex-1 items-center gap-3 rounded-lg px-4 py-3 transition-colors duration-300"
@@ -204,8 +139,8 @@ export default function TerminalCta() {
 
           {/* Bottom hint */}
           <p
-            className="mt-4 text-xs transition-opacity duration-700 ease-out"
-            style={{ color: "var(--text-muted)", opacity: step >= 3 ? 1 : 0 }}
+            className="term-input-hint mt-4 text-xs opacity-0 invisible"
+            style={{ color: "var(--text-muted)" }}
           >
             // Xác thực quyền khởi tạo không gian sinh trưởng.
           </p>

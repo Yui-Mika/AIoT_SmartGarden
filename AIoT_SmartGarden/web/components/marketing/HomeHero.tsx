@@ -141,7 +141,7 @@ export default function HomeHero({ isLoaded = false, shouldPlayVideo = true }: H
       /** Phase 2: Ngay khi vẽ xong viền (0.6 + 2.5 = 3.1s) - Converge ECO */
       introTl.to(
         eco,
-        { opacity: 1, y: 0, duration: 0.8, ease: "power2.out" },
+        { opacity: 1, y: 0, duration: 0.8, ease: "power2.out", force3D: true, z: 0.01 },
         3.1
       );
 
@@ -181,18 +181,32 @@ export default function HomeHero({ isLoaded = false, shouldPlayVideo = true }: H
       // 2. TIMELINE PORTAL (CÚ ZOOM KHI CUỘN)
       // ---------------------------------------------------------
 
-      // Set tâm scale nằm đúng giữa chữ O của chữ ECO. 
-      // Do SVG là 800x300 và ECO được đặt ở giữa, tâm 50% là lý tưởng.
-      gsap.set(eco, { transformOrigin: "50% 50%" });
+      // Thay đổi Render Context & Hardware Offload triệt để
+      gsap.set(eco, { transformOrigin: "50% 50%", transformPerspective: 1000 });
+
+      // Cấu hình phát hiện thiết bị yếu để Fallback
+      let isLowEndDevice = false;
+      if (typeof window !== "undefined") {
+        const isReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+        const hwConcurrency = navigator.hardwareConcurrency || 4;
+        const isLowRam = (navigator as any).deviceMemory ? (navigator as any).deviceMemory <= 4 : false;
+        // Bật fallback nếu ít hơn 4 lõi, hoặc RAM dưới bằng 4GB, hoặc prefers-reduced-motion
+        isLowEndDevice = isReducedMotion || (hwConcurrency < 4) || isLowRam;
+        console.log("[GPU Check] Render Policy:", isLowEndDevice ? "Fallback (Fade)" : "GPU Aggressive Zoom");
+        console.log("[GPU Check] ECO Layer has Will-Change & Raster Filters attached.");
+        
+        // Đồng bộ Ticker với 60 FPS requestAnimationFrame
+        gsap.ticker.fps(60); 
+      }
 
       scrollTl = gsap.timeline({
         paused: true,
         scrollTrigger: {
-          trigger: hero,
+          trigger: "#main-canvas",
           pin: true,
           start: "top top",
-          end: "+=400%",
-          scrub: 1.5,
+          end: "+=1000%",
+          scrub: 0.5 // Tăng độ phản hồi scrub (chuyển từ 2 / 1.5 xuống 0.5)
         }
       });
       
@@ -201,25 +215,291 @@ export default function HomeHero({ isLoaded = false, shouldPlayVideo = true }: H
         scrollTl.scrollTrigger.disable();
       }
 
-      // Tỉ lệ thời gian (0 -> 1) cho Timeline
+      // ==== INTRO: Zoom sequence ====
+      // Intervention 2: Tạm dừng hoàn toàn việc decode Video khi bắt đầu lao vào Zoom (0.1s)
+      scrollTl.to({ v: 0 }, { 
+        duration: 0.01, 
+        onStart: () => {
+          if (videoRef.current) {
+            videoRef.current.pause();
+            console.log("[GPU Check] Video Engine Paused.");
+          }
+        },
+        onReverseComplete: () => { 
+          if (shouldPlayVideoRef.current && videoRef.current) {
+            videoRef.current.play().catch(()=>{});
+            console.log("[GPU Check] Video Engine Resumed.");
+          }
+        }
+      }, 0.1);
 
-      // Giai đoạn 1 (0% -> 20%): Chữ TECH & Slogan mờ đi
-      scrollTl.to([tech, slogan], { autoAlpha: 0, duration: 0.2, ease: "power1.inOut", immediateRender: false }, 0);
+      scrollTl.to([tech, slogan], { autoAlpha: 0, duration: 0.2, ease: "power2.inOut", immediateRender: false }, 0);
 
-      // Giai đoạn 2 (20% -> 70%): The Deep Zoom (Phóng lớn chữ ECO)
-      scrollTl.to(eco, { scale: 150, duration: 0.5, ease: "power2.in", immediateRender: false }, 0.2);
+      // Intervention 4: Phân nhánh kịch bản Zoom Fallback vs Aggressive Zoom
+      if (isLowEndDevice) {
+        scrollTl.to(eco, { scale: 3, autoAlpha: 0, duration: 0.5, ease: "power2.inOut", force3D: true, z: 0.01, immediateRender: false }, 0.2);
+      } else {
+        scrollTl.to(eco, { scale: 150, duration: 0.5, ease: "power2.inOut", force3D: true, z: 0.01, immediateRender: false }, 0.2);
+        scrollTl.to(eco, { autoAlpha: 0, duration: 0.1, ease: "power2.inOut", force3D: true, z: 0.01, immediateRender: false }, 0.6);
+      }
 
-      // Background Swap (40% -> 60%): Khi đoạn scale làm chữ trắng sắp che kín mặt
-      scrollTl.to(video, { autoAlpha: 0, duration: 0.2, ease: "none", immediateRender: false }, 0.4);
+      // Hide Video by opacity & filter to fully halt browser composite computations on it
+      scrollTl.to(video, { autoAlpha: 0, filter: "blur(20px)", duration: 0.2, ease: "power2.inOut", immediateRender: false }, 0.4);
+      scrollTl.to([plexus, plexusGlow], { autoAlpha: 0, duration: 0.2, ease: "power2.inOut", immediateRender: false }, 0.6);
+      scrollTl.to(finalTitle, { autoAlpha: 1, filter: "blur(0px)", scale: 1, duration: 0.3, ease: "power2.out", immediateRender: false }, 0.7);
 
-      // Chữ ECO hoàn thành sứ mệnh cổng portal -> Xóa (60% -> 70%)
-      scrollTl.to(eco, { opacity: 0, duration: 0.1, ease: "none", immediateRender: false }, 0.6);
+      // Hold Title slightly
+      scrollTl.to({}, { duration: 0.2 }, "+=0"); 
 
-      // Mờ plexus hiện tại luôn để tập trung vào lớp Không Gian Galaxy bên dưới
-      scrollTl.to([plexus, plexusGlow], { autoAlpha: 0, duration: 0.2, ease: "power1.out", immediateRender: false }, 0.6);
+      // ==== PHASE 0: Hero Exit ====
+      scrollTl.to(finalTitle, { opacity: 0, scale: 0.9, duration: 0.3, immediateRender: false }, "+=0");
+      scrollTl.to(hero, { 
+        autoAlpha: 0, 
+        duration: 0.3, 
+        immediateRender: false,
+        pointerEvents: "none"
+      }, "<");
 
-      // Giai đoạn 3 (70% -> 100%): The Convergence (Chữ triết lý mờ tỏ)
-      scrollTl.to(finalTitle, { autoAlpha: 1, filter: "blur(0px)", scale: 1, duration: 0.3, ease: "power3.out", immediateRender: false }, 0.7);
+      // ==== PHASE 1: Bento Grid ====
+      // Provide pointerEvents auto
+      scrollTl.fromTo(".bento-section", 
+        { autoAlpha: 0, y: 0, pointerEvents: "none" },
+        { autoAlpha: 1, y: 0, pointerEvents: "auto", duration: 0.1, immediateRender: false }, 
+        "+=0.1"
+      );
+      
+      scrollTl.fromTo(".bento-title", 
+        { autoAlpha: 0, filter: "blur(10px)", letterSpacing: "0.5em" },
+        { autoAlpha: 1, filter: "blur(0px)", letterSpacing: "0.2em", duration: 0.5, ease: "expo.out", immediateRender: false }, 
+        "<"
+      );
+      scrollTl.fromTo(".bento-subtitle",
+        { autoAlpha: 0, filter: "blur(4px)" },
+        { autoAlpha: 1, filter: "blur(0px)", duration: 0.4, stagger: 0.1, immediateRender: false },
+        "-=0.2"
+      );
+      // Stage 1: Wireframe (Khung dây)
+      scrollTl.fromTo(".bento-card",
+        { 
+          autoAlpha: 0.01, 
+          border: "1px dashed rgba(34, 211, 238, 0)", 
+          backgroundColor: "rgba(0,0,0,0)",
+          backdropFilter: "blur(0px)",
+          boxShadow: "0px 0px 0px rgba(34,211,238,0)"
+        },
+        { 
+          autoAlpha: 0.2, 
+          border: "1px dashed rgba(34, 211, 238, 0.5)", 
+          duration: 0.4, 
+          stagger: 0.1, 
+          ease: "none", 
+          immediateRender: false 
+        },
+        "-=0.2"
+      );
+
+      // Stage 2: Light Pulse (Xung điện viền)
+      scrollTl.to(".bento-card",
+        { 
+          boxShadow: "0px 0px 15px rgba(34,211,238,0.8)", 
+          duration: 0.2, 
+          stagger: 0.1, 
+          yoyo: true, 
+          repeat: 1, 
+          immediateRender: false 
+        },
+        "+=0"
+      );
+
+      // Stage 3: Glass Fill (Điền kính)
+      scrollTl.to(".bento-card",
+        { 
+          border: "1px solid rgba(34, 211, 238, 0.2)", 
+          autoAlpha: 1, 
+          backgroundColor: "rgba(3, 5, 9, 0.6)", 
+          backdropFilter: "blur(20px)", 
+          duration: 0.6, 
+          stagger: 0.1, 
+          ease: "power2.out", 
+          immediateRender: false 
+        },
+        "+=0"
+      );
+
+      // Stage 4: Embedded Bento Grid Scrub Animations (Nạp Dữ liệu)
+      const bentoCounter = { val87: 0, val2: 0 };
+      scrollTl.to(bentoCounter, {
+        val87: 87,
+        val2: 2,
+        duration: 0.8,
+        ease: "none",
+        immediateRender: false,
+        onUpdate: () => {
+          const el87 = document.querySelector(".bento-counter-87");
+          const el2 = document.querySelector(".bento-counter-2");
+          if (el87) el87.textContent = Math.floor(bentoCounter.val87).toString();
+          if (el2) el2.textContent = Math.floor(bentoCounter.val2).toString();
+        }
+      }, "+=0.1"); // Start after glass fill finishes
+      
+      scrollTl.fromTo(".telemetry-path", 
+        { strokeDashoffset: 400 }, 
+        { strokeDashoffset: 0, duration: 0.8, ease: "none", immediateRender: false }, 
+        "<"
+      );
+      
+      scrollTl.fromTo(".vision-scan-line",
+        { y: 0 },
+        { y: 200, duration: 0.8, ease: "none", immediateRender: false },
+        "<"
+      );
+
+      // HOLD Bento
+      scrollTl.to({}, { duration: 0.6 }, "+=0");
+      
+      // Exit Bento
+      scrollTl.fromTo(".bento-section", 
+        { autoAlpha: 1, pointerEvents: "auto" },
+        { autoAlpha: 0, pointerEvents: "none", duration: 0.4, immediateRender: false }, 
+        "+=0"
+      );
+
+      // ==== PHASE 2: Hardware Store ====
+      scrollTl.fromTo(".hardware-section", 
+        { autoAlpha: 0, pointerEvents: "none" },
+        { autoAlpha: 1, pointerEvents: "auto", duration: 0.1, immediateRender: false }, 
+        "+=0"
+      );
+
+      scrollTl.fromTo(".hardware-title", 
+        { autoAlpha: 0, filter: "blur(10px)", letterSpacing: "0.5em" },
+        { autoAlpha: 1, filter: "blur(0px)", letterSpacing: "0.2em", duration: 0.5, immediateRender: false }, 
+        "<"
+      );
+      scrollTl.fromTo(".hardware-subtitle",
+        { autoAlpha: 0, filter: "blur(4px)" },
+        { autoAlpha: 1, filter: "blur(0px)", duration: 0.4, stagger: 0.1, immediateRender: false },
+        "-=0.3"
+      );
+
+      // Hardware Box Scan effect
+      scrollTl.fromTo("#scan-plane", 
+        { autoAlpha: 0 },
+        { autoAlpha: 1, duration: 0.1, immediateRender: false }, 
+        "<"
+      );
+      scrollTl.fromTo("#scan-plane", 
+        { y: "0vh" }, 
+        { y: "150vh", duration: 0.6, ease: "none", immediateRender: false }, 
+        "+=0"
+      );
+      scrollTl.fromTo("#scan-plane", 
+        { autoAlpha: 1 },
+        { autoAlpha: 0, duration: 0.2, immediateRender: false }, 
+        "+=0"
+      );
+      
+      // Reveal product strip container
+      scrollTl.fromTo("#hardware-store-section .grid",
+        { autoAlpha: 0, y: 30 },
+        { autoAlpha: 1, y: 0, duration: 0.2, immediateRender: false },
+        "-=0.4"
+      );
+
+      // Centralized Hardware Product Card Animation
+      scrollTl.fromTo(".product-dashed", 
+        { autoAlpha: 0, scale: 0.95 },
+        { autoAlpha: 1, scale: 1, duration: 0.4, stagger: 0.1, ease: "none", immediateRender: false, overwrite: "auto" },
+        "-=0"
+      );
+      scrollTl.fromTo(".product-card-glass",
+        { autoAlpha: 0, filter: "blur(10px) brightness(2)" },
+        { autoAlpha: 1, filter: "blur(0px) brightness(1)", duration: 0.6, stagger: 0.1, ease: "none", immediateRender: false, overwrite: "auto" },
+        "-=0.2"
+      );
+      scrollTl.fromTo(".product-dashed", 
+        { autoAlpha: 1, scale: 1 },
+        { autoAlpha: 0, scale: 1.05, duration: 0.4, stagger: 0.1, ease: "none", immediateRender: false, overwrite: "auto" }, 
+        "<"
+      );
+
+      // HOLD Hardware
+      scrollTl.to({}, { duration: 0.6 }, "+=0");
+
+      // Exit Hardware
+      scrollTl.fromTo(".hardware-section", 
+        { autoAlpha: 1, pointerEvents: "auto" },
+        { autoAlpha: 0, pointerEvents: "none", duration: 0.4, immediateRender: false }, 
+        "+=0"
+      );
+
+      // ==== PHASE 3: Terminal ====
+      scrollTl.fromTo(".terminal-section", 
+        { autoAlpha: 0, pointerEvents: "none" },
+        { autoAlpha: 1, pointerEvents: "auto", duration: 0.1, immediateRender: false }, 
+        "+=0"
+      );
+      
+      scrollTl.fromTo(".term-title",
+        { autoAlpha: 0, filter: "blur(10px)", letterSpacing: "0.5em" },
+        { autoAlpha: 1, filter: "blur(0px)", letterSpacing: "0.2em", duration: 0.5, immediateRender: false },
+        "<"
+      );
+      scrollTl.fromTo(".term-subtitle",
+        { autoAlpha: 0, filter: "blur(4px)" },
+        { autoAlpha: 1, filter: "blur(0px)", duration: 0.4, stagger: 0.1, immediateRender: false },
+        "-=0.3"
+      );
+      scrollTl.fromTo(".term-box",
+        { autoAlpha: 0, clipPath: "inset(50% 0 50% 0)" },
+        { autoAlpha: 1, clipPath: "inset(0% 0 0% 0)", duration: 0.6, immediateRender: false },
+        "-=0.2"
+      );
+
+      // Terminal Scrub Typewriter & Effects
+      const termObj = { char: 0 };
+      const targetCmd = "./initialize_garden.sh";
+      scrollTl.to(termObj, {
+        char: targetCmd.length,
+        duration: 0.8,
+        ease: "none",
+        immediateRender: false,
+        onUpdate: () => {
+          const el = document.getElementById("term-cmd");
+          if (el) el.textContent = targetCmd.slice(0, Math.floor(termObj.char));
+        }
+      }, "+=0.1");
+
+      scrollTl.fromTo(".term-cursor", 
+        { autoAlpha: 1 },
+        { autoAlpha: 0, duration: 0.1, immediateRender: false }, 
+        "+=0"
+      );
+
+      scrollTl.fromTo(".term-output-1", 
+        { autoAlpha: 0, y: 8 },
+        { autoAlpha: 1, y: 0, duration: 0.2, immediateRender: false }, 
+        "+=0.1"
+      );
+      scrollTl.fromTo(".term-output-2", 
+        { autoAlpha: 0, y: 8 },
+        { autoAlpha: 1, y: 0, duration: 0.2, immediateRender: false }, 
+        "+=0.1"
+      );
+      scrollTl.fromTo(".term-output-3", 
+        { autoAlpha: 0, y: 8 },
+        { autoAlpha: 1, y: 0, duration: 0.2, immediateRender: false }, 
+        "+=0.1"
+      );
+
+      scrollTl.fromTo([".term-input-row", ".term-input-hint"], 
+        { autoAlpha: 0, y: 15 },
+        { autoAlpha: 1, y: 0, duration: 0.4, stagger: 0.1, immediateRender: false }, 
+        "+=0.2"
+      );
+
+      // HOLD Terminal State
+      scrollTl.to({}, { duration: 0.6 }, "+=0");
 
       return () => {
         document.documentElement.style.overflow = "";
@@ -230,7 +510,7 @@ export default function HomeHero({ isLoaded = false, shouldPlayVideo = true }: H
         if (scrollTl) scrollTl.kill();
       };
     },
-    { dependencies: [isLoaded], scope: heroRef, revertOnUpdate: true }
+    { dependencies: [isLoaded], revertOnUpdate: true }
   );
 
   useEffect(() => {
@@ -262,8 +542,7 @@ export default function HomeHero({ isLoaded = false, shouldPlayVideo = true }: H
   return (
     <section
       ref={heroRef}
-      className="relative w-full overflow-hidden bg-transparent"
-      style={{ minHeight: "100dvh" }}
+      className="absolute inset-0 w-full overflow-hidden bg-transparent"
     >
       {/* Z-10: Môi trường Thực (Reality - Video) */}
       <video
@@ -357,7 +636,10 @@ export default function HomeHero({ isLoaded = false, shouldPlayVideo = true }: H
       />
 
       {/* Z-[40]: Lớp Tương Tác Chính - Tiêu đề mồi ECO-TECH */}
-      <div className="pointer-events-none absolute inset-0 z-[40] flex flex-col items-center justify-center px-6 text-center">
+      <div 
+        className="pointer-events-none absolute inset-0 z-[40] flex flex-col items-center justify-center px-6 text-center"
+        style={{ perspective: "1000px", backfaceVisibility: "hidden" }}
+      >
         <h1
           ref={titleWrapRef}
           className="m-0 flex w-full max-w-5xl justify-center"
@@ -373,6 +655,7 @@ export default function HomeHero({ isLoaded = false, shouldPlayVideo = true }: H
             role="img"
             aria-label="ECO-TECH"
             preserveAspectRatio="xMidYMid meet"
+            shapeRendering="geometricPrecision"
           >
             <title>ECO-TECH</title>
             
@@ -416,6 +699,11 @@ export default function HomeHero({ isLoaded = false, shouldPlayVideo = true }: H
                 fontWeight: 900,
                 letterSpacing: "0.2em",
                 textTransform: "uppercase",
+                willChange: "transform, opacity",
+                // Tuyệt chiêu CSS Rasterization offload to GPU Texture Cache
+                transform: "translateZ(0)",
+                isolation: "isolate", 
+                filter: "drop-shadow(0 0 0 transparent)", // Bắt buộc coi là Bitmap/Texture thay vì tính toán Vector lúc zoom khổng lồ
               }}
             >
               ECO

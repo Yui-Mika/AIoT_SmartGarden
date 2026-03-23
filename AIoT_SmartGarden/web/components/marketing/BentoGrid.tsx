@@ -27,64 +27,7 @@ export function HudCorners() {
 /* ─────────────────────────────────────
    Scroll-reveal hook
 ───────────────────────────────────── */
-function useScrollReveal(threshold = 0.12) {
-  const ref = useRef<HTMLDivElement>(null);
-  const [visible, setVisible] = useState(false);
-
-  useEffect(() => {
-    const el = ref.current;
-    if (!el) return;
-    const io = new IntersectionObserver(
-      ([entry]) => {
-        if (entry.isIntersecting) {
-          setVisible(true);
-          io.unobserve(el);
-        }
-      },
-      { threshold, rootMargin: "0px 0px -60px 0px" }
-    );
-    io.observe(el);
-    return () => io.disconnect();
-  }, [threshold]);
-
-  return { ref, visible };
-}
-
-/* ─────────────────────────────────────
-   Number Counter Hook
-───────────────────────────────────── */
-function NumberCounter({ value, visible }: { value: number; visible: boolean }) {
-  const [count, setCount] = useState(0);
-  
-  useEffect(() => {
-    if (!visible) {
-      setCount(0);
-      return;
-    }
-    let startTimestamp: number | null = null;
-    const duration = 1200; // ms
-    let frameId: number;
-
-    const step = (timestamp: number) => {
-      if (!startTimestamp) startTimestamp = timestamp;
-      const progress = Math.min((timestamp - startTimestamp) / duration, 1);
-      // easeOutExpo
-      const easing = progress === 1 ? 1 : 1 - Math.pow(2, -10 * progress);
-      setCount(Math.floor(easing * value));
-      if (progress < 1) {
-        frameId = requestAnimationFrame(step);
-      }
-    };
-
-    frameId = requestAnimationFrame(step);
-
-    return () => {
-      if (frameId) cancelAnimationFrame(frameId);
-    };
-  }, [value, visible]);
-
-  return <>{count}</>;
-}
+// counters will be controlled via GSAP in Master Timeline
 
 /* ─────────────────────────────────────
    Vision AI — Holographic Feed
@@ -148,17 +91,18 @@ function VisionMockup({ visible }: { visible: boolean }) {
             className="absolute -top-7 left-0 px-1 py-0.5 font-mono text-[9px] font-bold"
             style={{ color: "var(--cyan-400)", whiteSpace: "nowrap" }}
           >
-            Anomaly_01 <NumberCounter value={87} visible={visible} />%<br/>
+            Anomaly_01 <span className="bento-counter-87">0</span>%<br/>
             [<span className="text-[7px] text-[var(--cyan-600)]">240, 320, 80, 80</span>]
           </span>
         </div>
 
         {/* Animated scan line sweeping down */}
         <div
-          className="animate-scan-down absolute inset-x-0 h-px"
+          className="vision-scan-line absolute inset-x-0 top-0 h-px"
           style={{
             background: "rgba(34,211,238,0.6)",
             boxShadow: "0 0 12px 2px rgba(34,211,238,0.6)",
+            transform: "translateY(0px)",
           }}
         />
 
@@ -171,7 +115,7 @@ function VisionMockup({ visible }: { visible: boolean }) {
             CAM_01 · <span className="animate-pulse">REC</span>
           </span>
           <span className="font-mono text-[9px]" style={{ color: "var(--cyan-400)" }}>
-             <NumberCounter value={2} visible={visible} /> anomalies DETECTED
+             <span className="bento-counter-2">0</span> anomalies DETECTED
           </span>
         </div>
       </div>
@@ -217,14 +161,14 @@ function TelemetryChart({ visible }: { visible: boolean }) {
           strokeLinejoin="miter"
           fill="none"
           strokeDasharray="400"
-          className={visible ? "animate-draw-line" : ""}
+          className="telemetry-path"
           style={{ 
-            strokeDashoffset: visible ? 0 : 400,
+            strokeDashoffset: 400,
             filter: "drop-shadow(0px 0px 4px rgba(6,182,212,0.6))"
           }}
         />
         {/* End dot */}
-        <circle cx="200" cy="0" r="2" fill="#22D3EE" className="animate-pulse" />
+        <circle cx="200" cy="0" r="2" fill="#22D3EE" className="telemetry-dot" opacity="0" />
       </svg>
 
       {/* Terminology */}
@@ -353,44 +297,17 @@ export default function BentoGrid() {
   const containerRef = useRef<HTMLElement>(null);
   const [revealed, setRevealed] = useState(false);
 
-  useGSAP(() => {
-    const tl = gsap.timeline({
-      scrollTrigger: {
-        trigger: containerRef.current,
-        start: "top 85%",
-        toggleActions: "play none none reverse",
-        onLeaveBack: () => setRevealed(false)
-      },
-      onComplete: () => setRevealed(true),
-      onReverseComplete: () => setRevealed(false)
-    });
-
-    // 1. Header Animation
-    tl.fromTo(".bento-title",
-      { opacity: 0, filter: "blur(10px)", letterSpacing: "0.5em" },
-      { opacity: 1, filter: "blur(0px)", letterSpacing: "0.2em", duration: 1.2, ease: "expo.out" }
-    )
-    .fromTo(".bento-subtitle",
-      { opacity: 0, filter: "blur(4px)" },
-      { opacity: 1, filter: "blur(0px)", duration: 0.8, ease: "expo.out", stagger: 0.15 },
-      "-=0.9"
-    )
-    // 2. Bento Grid Spread Animation
-    .fromTo(".bento-card",
-      { clipPath: "inset(50% 0 50% 0)", opacity: 0 },
-      { clipPath: "inset(0% 0 0% 0)", opacity: 1, duration: 1.2, ease: "expo.out", stagger: 0.15 },
-      "-=0.6"
-    );
-
-  }, { scope: containerRef });
+  useEffect(() => {
+    // Empty: Master Timeline will scrub DOM directly using classes
+  }, []);
 
   return (
     <section
+      id="bento-grid"
       ref={containerRef as any}
-      className="relative overflow-visible"
-      style={{ marginTop: "6rem", paddingBottom: "6rem" }}
+      className="bento-section absolute inset-0 z-20 opacity-0 invisible flex flex-col justify-center w-full max-w-6xl mx-auto px-4 md:px-6"
     >
-      <div className="relative z-10 mx-auto w-full max-w-6xl px-4 md:px-6">
+      <div className="relative z-10 w-full">
 
         {/* ── Section header ── */}
         <div
