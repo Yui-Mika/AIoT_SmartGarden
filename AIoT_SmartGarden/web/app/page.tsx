@@ -30,36 +30,7 @@ export default function Home() {
   const [loadingDone, setLoadingDone] = useState(false);
 
   useGSAP(() => {
-    // Holographic Scanning Plane
-    gsap.to("#scan-plane", {
-      y: "150vh",
-      ease: "none",
-      scrollTrigger: {
-        trigger: document.body,
-        start: "top top",
-        end: "bottom bottom",
-        scrub: 1.5,
-      }
-    });
-
-    // Hardware Store Header GSAP
-    const hwTl = gsap.timeline({
-      scrollTrigger: {
-        trigger: "#hardware-store-section",
-        start: "top 85%",
-        toggleActions: "play none none reverse"
-      }
-    });
-
-    hwTl.fromTo(".hardware-title",
-      { opacity: 0, filter: "blur(10px)", letterSpacing: "0.5em" },
-      { opacity: 1, filter: "blur(0px)", letterSpacing: "0.2em", duration: 1.2, ease: "expo.out" }
-    )
-    .fromTo(".hardware-subtitle",
-      { opacity: 0, filter: "blur(4px)" },
-      { opacity: 1, filter: "blur(0px)", duration: 0.8, ease: "expo.out", stagger: 0.15 },
-      "-=0.9"
-    );
+    // Master Timeline in HomeHero.tsx handles animations now.
   });
 
   return (
@@ -67,7 +38,7 @@ export default function Home() {
       {/* SCANNING REVEAL PLANE */}
       <div 
         id="scan-plane"
-        className="fixed inset-x-0 top-0 z-50 h-[30vh] pointer-events-none"
+        className="absolute inset-x-0 top-0 z-[35] h-[30vh] pointer-events-none opacity-0 invisible"
         style={{
           background: "linear-gradient(to bottom, transparent, rgba(34,211,238,0.02) 80%, rgba(34,211,238,0.15) 100%)",
           borderBottom: "1px solid rgba(34,211,238,0.4)",
@@ -77,39 +48,19 @@ export default function Home() {
 
       {!loadingDone ? <LoadingScreen onComplete={() => setLoadingDone(true)} /> : null}
 
-      <HomeHero isLoaded={loadingDone} shouldPlayVideo={loadingDone} />
+      <div id="main-canvas" className="relative w-full h-[100vh] overflow-hidden">
+        <HomeHero isLoaded={loadingDone} shouldPlayVideo={loadingDone} />
 
-      {/* ── Stats Trust Bar ── */}
-      <div
-        className="w-full overflow-x-auto"
-        style={{
-          borderTop: "1px solid var(--border-subtle)",
-          borderBottom: "1px solid var(--border-subtle)",
-          background: "rgba(255,255,255,0.015)",
-        }}
-      >
-        <div className="mx-auto flex w-max items-center gap-8 px-6 py-3.5 md:w-full md:max-w-6xl md:justify-center md:px-6">
-          {TRUST_ITEMS.map((item) => (
-            <span
-              key={item}
-              className="flex shrink-0 items-center gap-2 text-xs font-medium"
-              style={{ color: "var(--text-secondary)" }}
-            >
-              <CheckCircle size={12} style={{ color: "var(--emerald-500)", flexShrink: 0 }} />
-              {item}
-            </span>
-          ))}
-        </div>
-      </div>
+        {/* ── Stats Trust Bar (Temporarily hidden for cinematic flow) ── */}
+        {/* <div className="w-full overflow-x-auto">...</div> */}
 
-      <BentoGrid />
+        <BentoGrid />
 
-      {/* ── Product Strip ── */}
-      <section
-        id="hardware-store-section"
-        className="relative mx-auto w-full max-w-6xl px-4 md:px-6"
-        style={{ marginTop: "7rem", paddingBottom: "2rem" }}
-      >
+        {/* ── Product Strip ── */}
+        <section
+          id="hardware-store-section"
+          className="hardware-section absolute inset-0 z-30 opacity-0 invisible flex flex-col items-center justify-center w-full max-w-6xl mx-auto px-4 md:px-6"
+        >
         {/* Section header */}
         <div className="mb-14 flex flex-col items-start md:items-center justify-center text-center">
           <span
@@ -151,8 +102,6 @@ export default function Home() {
           {sampleProducts.slice(0, 3).map((product, i) => (
             <div
               key={product.slug}
-              className="animate-fade-up"
-              style={{ animationDelay: `${i * 120}ms` }}
             >
               <ProductCard product={product} />
             </div>
@@ -161,6 +110,7 @@ export default function Home() {
       </section>
 
       <TerminalCta />
+      </div>
 
       <SiteFooter />
     </main>

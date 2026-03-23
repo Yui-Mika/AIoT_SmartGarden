@@ -95,31 +95,88 @@ export default function ProductCard({ product }: { product: Product }) {
   const [added, setAdded] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
 
-  useGSAP(() => {
-    const tl = gsap.timeline({
-      scrollTrigger: {
-        trigger: containerRef.current,
-        start: "top 85%",
-        toggleActions: "play none none reverse"
-      }
+  // Empty context: local ScrollTriggers removed for Master Timeline centralization
+
+  const { contextSafe } = useGSAP({ scope: containerRef });
+
+  const handleMouseEnter = contextSafe(() => {
+    gsap.to(".product-card-glass", { 
+      borderColor: "rgba(34,211,238,0.7)", 
+      boxShadow: "0 0 20px rgba(34,211,238,0.6)", 
+      y: -8, scale: 1.05,
+      duration: 0.4, 
+      ease: "power2.out" 
+    });
+    
+    // Phase 1: Hologram Lift
+    gsap.to(".hologram-lift-wrapper", {
+      z: 80,
+      filter: "brightness(1.5)",
+      duration: 0.4,
+      ease: "power2.out"
     });
 
-    // 1. Dashed Box reveals first, holds
-    tl.fromTo(".product-dashed", 
-      { opacity: 0, scale: 0.95 },
-      { opacity: 1, scale: 1, duration: 0.4, ease: "power2.out" }
-    )
-    // 2. Flicker / Glitch materialization of the glass card 
-    .fromTo(".product-card-glass",
-      // flicker effect start params
-      { opacity: 0, filter: "blur(10px) brightness(2)", scale: 1 },
-      { opacity: 1, filter: "blur(0px) brightness(1)", duration: 0.6, ease: "expo.out" },
-      "+=0.2" // wait a little bit after dashed box finishes
-    )
-    // 3. Fade out dashed box
-    .to(".product-dashed", { opacity: 0, scale: 1.05, duration: 0.4 }, "-=0.4");
+    // Phase 2: Depth text
+    gsap.to(".content-zone", {
+      z: -20,
+      opacity: 0.8,
+      duration: 0.4,
+      ease: "power2.out"
+    });
 
-  }, { scope: containerRef });
+    // Phase 3: Reveal base and pulse
+    gsap.to(".hologram-projection-base", {
+      autoAlpha: 1,
+      scale: 1.3,
+      duration: 0.4,
+      ease: "power2.out",
+      onComplete: () => {
+        gsap.to(".hologram-projection-base", {
+          opacity: 0.4,
+          scale: 1.1,
+          duration: 0.8,
+          yoyo: true,
+          repeat: -1,
+          ease: "sine.inOut"
+        });
+      }
+    });
+  });
+
+  const handleMouseLeave = contextSafe(() => {
+    gsap.to(".product-card-glass", { 
+      borderColor: "rgba(6, 182, 212, 0.12)", 
+      boxShadow: "none", 
+      y: 0, scale: 1,
+      duration: 0.4, 
+      ease: "power2.out" 
+    });
+    
+    // Revert Lift
+    gsap.to(".hologram-lift-wrapper", {
+      z: 20,
+      filter: "brightness(1)",
+      duration: 0.4,
+      ease: "power2.out"
+    });
+
+    // Revert text
+    gsap.to(".content-zone", {
+      z: 0,
+      opacity: 1,
+      duration: 0.4,
+      ease: "power2.out"
+    });
+
+    // Hide base
+    gsap.killTweensOf(".hologram-projection-base");
+    gsap.to(".hologram-projection-base", {
+      autoAlpha: 0,
+      scale: 0.8,
+      duration: 0.4,
+      ease: "power2.out"
+    });
+  });
 
   function handleAddToCart(e: React.MouseEvent) {
     e.preventDefault();
@@ -129,26 +186,17 @@ export default function ProductCard({ product }: { product: Product }) {
   }
 
   return (
-    <div ref={containerRef} className="relative w-full h-full p-[1px]">
-      <div className="product-dashed absolute inset-0 border-[1px] border-dashed border-[var(--cyan-400)] pointer-events-none z-0 rounded-2xl opacity-0" />
+    <div ref={containerRef} className="relative w-full h-full p-[1px]" style={{ perspective: "1000px" }}>
+      <div className="product-dashed absolute inset-0 border-[1px] border-dashed border-[var(--cyan-400)] pointer-events-none z-0 rounded-2xl opacity-0" style={{ willChange: "transform, opacity" }} />
       <article
         className="product-card-glass dark-card group relative flex flex-col overflow-hidden h-full opacity-0"
         style={{
-          transition: "border-color 0.4s ease, box-shadow 0.4s ease, transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275)",
+          transformStyle: "preserve-3d",
+          willChange: "transform, opacity, filter"
         }}
-        onMouseEnter={(e) => {
-          const el = e.currentTarget as HTMLElement;
-        el.style.borderColor = "rgba(34,211,238,0.7)";
-        el.style.boxShadow   = "0 0 20px rgba(34,211,238,0.6)";
-        el.style.transform   = "translateY(-8px) scale(1.05)";
-      }}
-      onMouseLeave={(e) => {
-        const el = e.currentTarget as HTMLElement;
-        el.style.borderColor = "rgba(6, 182, 212, 0.12)";
-        el.style.boxShadow   = "none";
-        el.style.transform   = "translateY(0) scale(1)";
-      }}
-    >
+        onMouseEnter={handleMouseEnter}
+        onMouseLeave={handleMouseLeave}
+      >
       <HudCorners />
       {/* ── Visual zone ── */}
       <div
@@ -172,17 +220,33 @@ export default function ProductCard({ product }: { product: Product }) {
           }}
         />
 
-        {/* Central icon */}
-        <div
-          className="relative z-10 flex h-20 w-20 items-center justify-center rounded-2xl"
-          style={{
-            background: cfg.accentBg,
-            border: `1px solid ${cfg.accentBorder}`,
-            backdropFilter: "blur(12px)",
-            boxShadow: `0 0 32px ${cfg.glow}`,
-          }}
-        >
-          <Icon size={36} style={{ color: cfg.accent }} />
+        {/* Central Icon Hologram System */}
+        <div className="relative flex items-center justify-center" style={{ transformStyle: "preserve-3d" }}>
+          
+          {/* Phase 3 Base Projection Ring */}
+          <div 
+            className="hologram-projection-base absolute inset-0 rounded-full opacity-0 invisible"
+            style={{
+              border: `2px dashed ${cfg.accent}`,
+              boxShadow: `0 0 15px ${cfg.glow}, inset 0 0 15px ${cfg.glow}`,
+              transform: "translateZ(0px) scale(0.8)",
+              background: `radial-gradient(circle, ${cfg.glow} 0%, transparent 70%)`
+            }}
+          />
+
+          {/* Phase 1 The Lift Wrapper */}
+          <div
+            className="hologram-lift-wrapper relative z-10 flex h-20 w-20 items-center justify-center rounded-2xl"
+            style={{
+              background: cfg.accentBg,
+              border: `1px solid ${cfg.accentBorder}`,
+              backdropFilter: "blur(12px)",
+              boxShadow: `0 0 32px ${cfg.glow}`,
+              transform: "translateZ(20px)",
+            }}
+          >
+            <Icon size={36} style={{ color: cfg.accent }} />
+          </div>
         </div>
 
         {/* Floating category badge — top left */}
@@ -224,7 +288,10 @@ export default function ProductCard({ product }: { product: Product }) {
       </div>
 
       {/* ── Content zone ── */}
-      <div className="flex flex-1 flex-col p-5">
+      <div 
+        className="content-zone flex flex-1 flex-col p-5"
+        style={{ transform: "translateZ(0px)", transformStyle: "preserve-3d", willChange: "transform, opacity" }}
+      >
         {/* Rating */}
         <div className="mb-3 flex items-center gap-1">
           {Array.from({ length: 5 }).map((_, i) => (
