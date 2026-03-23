@@ -2,8 +2,13 @@
 
 import Link from "next/link";
 import { ArrowRight, Star, Leaf, FlaskConical, Cpu, Tag, ShoppingCart, Check } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useCart } from "@/components/providers/CartProvider";
+import gsap from "gsap";
+import { ScrollTrigger } from "gsap/ScrollTrigger";
+import { useGSAP } from "@gsap/react";
+
+if (typeof window !== "undefined") gsap.registerPlugin(ScrollTrigger, useGSAP);
 
 type Product = {
   slug: string;
@@ -14,7 +19,22 @@ type Product = {
   rating?: number;
 };
 
-/* ── Per-category design tokens ── */
+/* ─────────────────────────────────────
+   HUD Components
+───────────────────────────────────── */
+function HudCorners() {
+  const c = "absolute w-3 h-3 border-[1.5px] border-[rgba(34,211,238,0.5)] pointer-events-none z-20 transition-colors duration-300";
+  return (
+    <>
+      <div className={`${c} top-[-1px] left-[-1px] border-r-0 border-b-0`} />
+      <div className={`${c} top-[-1px] right-[-1px] border-l-0 border-b-0`} />
+      <div className={`${c} bottom-[-1px] left-[-1px] border-r-0 border-t-0`} />
+      <div className={`${c} bottom-[-1px] right-[-1px] border-l-0 border-t-0`} />
+    </>
+  );
+}
+
+/* ── Per-category design tokens (Unified Cyber Cyan) ── */
 const CATEGORY_CONFIG: Record<
   string,
   {
@@ -31,35 +51,32 @@ const CATEGORY_CONFIG: Record<
   seeds: {
     label: "Hạt Giống",
     icon: Leaf,
-    gradient:
-      "linear-gradient(135deg, rgba(16,185,129,0.18) 0%, rgba(5,150,105,0.08) 60%, rgba(16,185,129,0.04) 100%)",
-    glow: "rgba(16,185,129,0.12)",
-    accent: "var(--emerald-400)",
-    accentBg: "rgba(16,185,129,0.10)",
-    accentBorder: "rgba(16,185,129,0.22)",
-    badgeColor: "var(--emerald-500)",
+    gradient: "transparent",
+    glow: "rgba(6,182,212,0.15)",
+    accent: "var(--cyan-400)",
+    accentBg: "rgba(6,182,212,0.06)",
+    accentBorder: "rgba(6,182,212,0.25)",
+    badgeColor: "var(--cyan-500)",
   },
   nutrients: {
     label: "Dinh Dưỡng",
     icon: FlaskConical,
-    gradient:
-      "linear-gradient(135deg, rgba(59,130,246,0.18) 0%, rgba(37,99,235,0.08) 60%, rgba(59,130,246,0.04) 100%)",
-    glow: "rgba(59,130,246,0.12)",
-    accent: "var(--blue-400)",
-    accentBg: "rgba(59,130,246,0.10)",
-    accentBorder: "rgba(59,130,246,0.22)",
-    badgeColor: "#60A5FA",
+    gradient: "transparent",
+    glow: "rgba(34,211,238,0.15)",
+    accent: "var(--cyan-400)",
+    accentBg: "rgba(34,211,238,0.06)",
+    accentBorder: "rgba(34,211,238,0.25)",
+    badgeColor: "#22D3EE",
   },
   "smart-pots": {
     label: "Smart Pot",
     icon: Cpu,
-    gradient:
-      "linear-gradient(135deg, rgba(245,158,11,0.18) 0%, rgba(217,119,6,0.08) 60%, rgba(245,158,11,0.04) 100%)",
-    glow: "rgba(245,158,11,0.12)",
-    accent: "var(--gold-400)",
-    accentBg: "rgba(245,158,11,0.10)",
-    accentBorder: "rgba(245,158,11,0.22)",
-    badgeColor: "var(--gold-400)",
+    gradient: "transparent",
+    glow: "rgba(8,145,178,0.15)",
+    accent: "var(--cyan-500)",
+    accentBg: "rgba(8,145,178,0.06)",
+    accentBorder: "rgba(8,145,178,0.25)",
+    badgeColor: "var(--cyan-600)",
   },
 };
 
@@ -76,6 +93,33 @@ export default function ProductCard({ product }: { product: Product }) {
 
   const { add } = useCart();
   const [added, setAdded] = useState(false);
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  useGSAP(() => {
+    const tl = gsap.timeline({
+      scrollTrigger: {
+        trigger: containerRef.current,
+        start: "top 85%",
+        toggleActions: "play none none reverse"
+      }
+    });
+
+    // 1. Dashed Box reveals first, holds
+    tl.fromTo(".product-dashed", 
+      { opacity: 0, scale: 0.95 },
+      { opacity: 1, scale: 1, duration: 0.4, ease: "power2.out" }
+    )
+    // 2. Flicker / Glitch materialization of the glass card 
+    .fromTo(".product-card-glass",
+      // flicker effect start params
+      { opacity: 0, filter: "blur(10px) brightness(2)", scale: 1 },
+      { opacity: 1, filter: "blur(0px) brightness(1)", duration: 0.6, ease: "expo.out" },
+      "+=0.2" // wait a little bit after dashed box finishes
+    )
+    // 3. Fade out dashed box
+    .to(".product-dashed", { opacity: 0, scale: 1.05, duration: 0.4 }, "-=0.4");
+
+  }, { scope: containerRef });
 
   function handleAddToCart(e: React.MouseEvent) {
     e.preventDefault();
@@ -85,26 +129,27 @@ export default function ProductCard({ product }: { product: Product }) {
   }
 
   return (
-    <article
-      className="group relative flex flex-col overflow-hidden rounded-3xl"
-      style={{
-        background: "var(--bg-elevated)",
-        border: "1px solid var(--border-subtle)",
-        transition: "border-color 0.25s ease, box-shadow 0.25s ease, transform 0.25s ease",
-      }}
-      onMouseEnter={(e) => {
-        const el = e.currentTarget as HTMLElement;
-        el.style.borderColor = cfg.accentBorder;
-        el.style.boxShadow   = `0 8px 40px ${cfg.glow}, 0 0 0 1px ${cfg.accentBorder}`;
-        el.style.transform   = "translateY(-4px)";
+    <div ref={containerRef} className="relative w-full h-full p-[1px]">
+      <div className="product-dashed absolute inset-0 border-[1px] border-dashed border-[var(--cyan-400)] pointer-events-none z-0 rounded-2xl opacity-0" />
+      <article
+        className="product-card-glass dark-card group relative flex flex-col overflow-hidden h-full opacity-0"
+        style={{
+          transition: "border-color 0.4s ease, box-shadow 0.4s ease, transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275)",
+        }}
+        onMouseEnter={(e) => {
+          const el = e.currentTarget as HTMLElement;
+        el.style.borderColor = "rgba(34,211,238,0.7)";
+        el.style.boxShadow   = "0 0 20px rgba(34,211,238,0.6)";
+        el.style.transform   = "translateY(-8px) scale(1.05)";
       }}
       onMouseLeave={(e) => {
         const el = e.currentTarget as HTMLElement;
-        el.style.borderColor = "var(--border-subtle)";
+        el.style.borderColor = "rgba(6, 182, 212, 0.12)";
         el.style.boxShadow   = "none";
-        el.style.transform   = "translateY(0)";
+        el.style.transform   = "translateY(0) scale(1)";
       }}
     >
+      <HudCorners />
       {/* ── Visual zone ── */}
       <div
         className="relative flex items-center justify-center overflow-hidden"
@@ -133,7 +178,7 @@ export default function ProductCard({ product }: { product: Product }) {
           style={{
             background: cfg.accentBg,
             border: `1px solid ${cfg.accentBorder}`,
-            backdropFilter: "blur(8px)",
+            backdropFilter: "blur(12px)",
             boxShadow: `0 0 32px ${cfg.glow}`,
           }}
         >
@@ -144,9 +189,9 @@ export default function ProductCard({ product }: { product: Product }) {
         <div
           className="absolute left-3.5 top-3.5 flex items-center gap-1.5 rounded-full px-2.5 py-1"
           style={{
-            background: "rgba(9,9,11,0.70)",
+            background: "rgba(0,0,0,0.4)",
             border: "1px solid rgba(255,255,255,0.08)",
-            backdropFilter: "blur(8px)",
+            backdropFilter: "blur(12px)",
           }}
         >
           <span
@@ -166,12 +211,12 @@ export default function ProductCard({ product }: { product: Product }) {
           <div
             className="absolute right-3.5 top-3.5 flex items-center gap-1 rounded-full px-2 py-1"
             style={{
-              background: "rgba(239,68,68,0.15)",
-              border: "1px solid rgba(239,68,68,0.30)",
+              background: "rgba(6,182,212,0.15)",
+              border: "1px solid rgba(6,182,212,0.30)",
             }}
           >
-            <Tag size={9} style={{ color: "#F87171" }} />
-            <span className="font-mono text-[10px] font-bold" style={{ color: "#F87171" }}>
+            <Tag size={9} style={{ color: "var(--cyan-400)" }} />
+            <span className="font-mono text-[10px] font-bold" style={{ color: "var(--cyan-400)" }}>
               -{discountPct}%
             </span>
           </div>
@@ -188,7 +233,7 @@ export default function ProductCard({ product }: { product: Product }) {
               size={10}
               fill={(product.rating ?? 0) > i ? "currentColor" : "none"}
               style={{
-                color: (product.rating ?? 0) > i ? "var(--gold-400)" : "rgba(255,255,255,0.15)",
+                color: (product.rating ?? 0) > i ? "var(--cyan-400)" : "rgba(255,255,255,0.15)",
               }}
             />
           ))}
@@ -212,7 +257,7 @@ export default function ProductCard({ product }: { product: Product }) {
           className="mt-1.5 line-clamp-2 text-xs leading-relaxed"
           style={{ color: "var(--text-muted)" }}
         >
-          Sản phẩm chính hãng cho hệ thủy canh gia đình.
+          Module hỗ trợ kỹ thuật và vận hành cao cấp.
         </p>
 
         {/* Spacer */}
@@ -248,25 +293,25 @@ export default function ProductCard({ product }: { product: Product }) {
               onClick={handleAddToCart}
               className="flex flex-1 items-center justify-center gap-1.5 rounded-xl py-2.5 text-xs font-semibold transition-all duration-150"
               style={{
-                background: added ? "rgba(34,197,94,0.15)" : cfg.accentBg,
-                color: added ? "var(--emerald-400)" : cfg.accent,
-                border: `1px solid ${added ? "rgba(74,222,128,0.30)" : cfg.accentBorder}`,
+                background: added ? "rgba(6,182,212,0.15)" : cfg.accentBg,
+                color: added ? "var(--cyan-400)" : cfg.accent,
+                border: `1px solid ${added ? "rgba(6,182,212,0.30)" : cfg.accentBorder}`,
               }}
             >
               {added ? <Check size={12} /> : <ShoppingCart size={12} />}
-              {added ? "Đã thêm!" : "Thêm vào giỏ"}
+              {added ? "Đã xác nhận!" : "Khởi tạo lệnh"}
             </button>
 
             {/* View detail */}
             <Link
               href={`/products/${product.slug}`}
-              className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl transition-all duration-150"
+              className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl transition-all duration-150 hover:bg-white/5"
               style={{
-                background: "rgba(255,255,255,0.04)",
+                background: "rgba(255,255,255,0.02)",
                 border: "1px solid var(--border-subtle)",
                 color: "var(--text-muted)",
               }}
-              title="Xem chi tiết"
+              title="Phân tích"
             >
               <ArrowRight size={13} />
             </Link>
@@ -274,5 +319,6 @@ export default function ProductCard({ product }: { product: Product }) {
         </div>
       </div>
     </article>
+    </div>
   );
 }
