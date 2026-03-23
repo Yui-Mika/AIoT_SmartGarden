@@ -1,5 +1,7 @@
 import type { NextAuthOptions } from "next-auth";
 import GoogleProvider from "next-auth/providers/google";
+import CredentialsProvider from "next-auth/providers/credentials";
+import bcrypt from "bcryptjs";
 import UserModel from "@/models/User";
 import { dbConnect } from "@/lib/mongodb";
 
@@ -9,6 +11,59 @@ export const authOptions: NextAuthOptions = {
       clientId: process.env.GOOGLE_CLIENT_ID || "",
       clientSecret: process.env.GOOGLE_CLIENT_SECRET || "",
     }),
+    CredentialsProvider({
+      name: "Admin Login",
+      credentials: {
+        email: { label: "Email", type: "email" },
+        password: { label: "Password", type: "password" },
+      },
+      async authorize(credentials) {
+        if (!credentials?.email || !credentials?.password) {
+          throw new Error("Thiếu email hoặc mật khẩu");
+        }
+
+        const normalizedEmail = credentials.email.trim().toLowerCase();
+        const normalizedPassword = credentials.password.trim();
+
+        await dbConnect();
+
+        const user = await UserModel.findOne({
+          email: { $regex: `^${normalizedEmail.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}$`, $options: "i" },
+        });
+        if (!user) {
+          throw new Error("Không tìm thấy tài khoản");
+        }
+
+        if (user.role !== "admin") {
+          throw new Error("Chỉ tài khoản admin mới được đăng nhập theo cách này");
+        }
+
+        if (user.status === "banned") {
+          throw new Error("Tài khoản đang bị khóa");
+        }
+
+        if (!user.password) {
+          throw new Error("Tài khoản admin chưa có mật khẩu");
+        }
+
+        const passwordValue = String(user.password);
+        const isBcryptHash = /^\$2[aby]\$\d{2}\$/.test(passwordValue);
+        const isPasswordValid = isBcryptHash
+          ? await bcrypt.compare(normalizedPassword, passwordValue)
+          : normalizedPassword === passwordValue;
+
+        if (!isPasswordValid) {
+          throw new Error("Sai mật khẩu");
+        }
+
+        return {
+          id: user._id.toString(),
+          name: user.name,
+          email: user.email,
+          image: user.image,
+        };
+      },
+    }),
   ],
   session: {
     strategy: "jwt",
@@ -17,7 +72,11 @@ export const authOptions: NextAuthOptions = {
     signIn: "/auth/login",
   },
   callbacks: {
-    async signIn({ user }) {
+    async signIn({ user, account }) {
+      if (account?.provider === "credentials") {
+        return true;
+      }
+
       if (!user.email || !user.name) {
         return false;
       }
@@ -47,9 +106,13 @@ export const authOptions: NextAuthOptions = {
       await existingUser.save();
       return true;
     },
-    async jwt({ token }) {
+    async jwt({ token, account }) {
       if (!token.email) {
         return token;
+      }
+
+      if (account?.provider) {
+        token.provider = account.provider;
       }
 
       await dbConnect();
@@ -72,6 +135,10 @@ export const authOptions: NextAuthOptions = {
       return session;
     },
     async redirect({ baseUrl, url }) {
+      if (url === "/" || url.includes("/admin")) {
+        return `${baseUrl}/admin`;
+      }
+
       if (url.startsWith("/")) {
         return `${baseUrl}${url}`;
       }

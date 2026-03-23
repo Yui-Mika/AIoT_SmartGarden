@@ -1,6 +1,7 @@
 "use client";
 
-import { useState, useRef } from "react";
+import { useRef, useState } from "react";
+import { useSession } from "next-auth/react";
 import {
   User, Mail, Phone, MapPin, Camera, Save, CheckCircle,
   Bell, Shield, Smartphone, Globe, Key,
@@ -121,11 +122,13 @@ function Field({
    Main
 ───────────────────────────────────────── */
 export default function UserSettingsPage() {
+  const { data: session } = useSession();
+
   /* Profile */
-  const [displayName, setDisplayName] = useState("Thiên Dương");
-  const [phone, setPhone]             = useState("0901 234 567");
-  const [location, setLocation]       = useState("Hồ Chí Minh, Việt Nam");
-  const [bio, setBio]                 = useState("Đam mê trồng cây thủy canh tại nhà 🌱");
+  const [displayName, setDisplayName] = useState<string | null>(null);
+  const [phone, setPhone]             = useState("");
+  const [location, setLocation]       = useState("");
+  const [bio, setBio]                 = useState("");
   const avatarRef                     = useRef<HTMLInputElement>(null);
 
   /* Notifications */
@@ -151,8 +154,11 @@ export default function UserSettingsPage() {
     setTimeout(() => setSaved(false), 2500);
   }
 
-  /* Mock session */
-  const email = "thienduong@gmail.com";
+  const sessionDisplayName = session?.user?.name ?? "";
+  const email = session?.user?.email ?? "";
+  const avatar = session?.user?.image ?? "";
+  const profileDisplayName = displayName ?? sessionDisplayName;
+  const initial = (profileDisplayName || email || "U").charAt(0).toUpperCase();
 
   return (
     <div className="animate-fade-up mx-auto max-w-2xl space-y-5">
@@ -163,7 +169,7 @@ export default function UserSettingsPage() {
           className="mb-1.5 font-mono text-xs font-semibold uppercase tracking-[0.15em]"
           style={{ color: "var(--emerald-500)" }}
         >
-          // USER SETTINGS
+          {"// USER SETTINGS"}
         </p>
         <h1 className="text-3xl font-bold" style={{ color: "var(--text-primary)" }}>
           Cài đặt tài khoản
@@ -180,15 +186,25 @@ export default function UserSettingsPage() {
         {/* Avatar */}
         <div className="mb-6 flex items-center gap-5">
           <div className="relative">
-            <div
-              className="flex h-16 w-16 items-center justify-center rounded-2xl text-2xl font-black"
-              style={{
-                background: "linear-gradient(135deg, var(--emerald-500), var(--emerald-600))",
-                boxShadow: "0 0 24px rgba(34,197,94,0.25)",
-              }}
-            >
-              {displayName.charAt(0).toUpperCase()}
-            </div>
+            {avatar ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img
+                src={avatar}
+                alt={displayName || "avatar"}
+                className="h-16 w-16 rounded-2xl object-cover"
+                style={{ boxShadow: "0 0 24px rgba(34,197,94,0.25)" }}
+              />
+            ) : (
+              <div
+                className="flex h-16 w-16 items-center justify-center rounded-2xl text-2xl font-black"
+                style={{
+                  background: "linear-gradient(135deg, var(--emerald-500), var(--emerald-600))",
+                  boxShadow: "0 0 24px rgba(34,197,94,0.25)",
+                }}
+              >
+                {initial}
+              </div>
+            )}
             <button
               onClick={() => avatarRef.current?.click()}
               className="absolute -bottom-1 -right-1 flex h-6 w-6 items-center justify-center rounded-full"
@@ -202,7 +218,7 @@ export default function UserSettingsPage() {
             <input ref={avatarRef} type="file" accept="image/*" className="hidden" />
           </div>
           <div>
-            <p className="font-semibold" style={{ color: "var(--text-primary)" }}>{displayName}</p>
+            <p className="font-semibold" style={{ color: "var(--text-primary)" }}>{profileDisplayName}</p>
             <p className="mt-0.5 text-xs" style={{ color: "var(--text-muted)" }}>{email}</p>
             <button
               onClick={() => avatarRef.current?.click()}
@@ -218,7 +234,7 @@ export default function UserSettingsPage() {
         <div className="grid gap-4 sm:grid-cols-2">
           <Field
             label="Tên hiển thị"
-            value={displayName}
+            value={profileDisplayName}
             onChange={setDisplayName}
             placeholder="Nhập tên của bạn"
             icon={User}
@@ -233,14 +249,14 @@ export default function UserSettingsPage() {
             label="Số điện thoại"
             value={phone}
             onChange={setPhone}
-            placeholder="0901 234 567"
+            placeholder="Nhập số điện thoại"
             icon={Phone}
           />
           <Field
             label="Vị trí"
             value={location}
             onChange={setLocation}
-            placeholder="Thành phố, Quốc gia"
+            placeholder="Nhập thành phố, quốc gia"
             icon={MapPin}
           />
           <div className="sm:col-span-2">
