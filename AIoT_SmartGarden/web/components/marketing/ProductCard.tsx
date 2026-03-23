@@ -99,18 +99,25 @@ export default function ProductCard({ product }: { product: Product }) {
 
   const { contextSafe } = useGSAP({ scope: containerRef });
 
+  const tiltRef = useRef<HTMLElement>(null);
+  
+  // Deterministic ID generator to avoid hydration mismatches
+  const nodeId = Array.from(product.slug).reduce((acc, char) => acc + char.charCodeAt(0), 0).toString(16).toUpperCase().padStart(4, "0");
+
   const handleMouseEnter = contextSafe(() => {
+    // 0. Wireframe solidifies
     gsap.to(".product-card-glass", { 
       borderColor: "rgba(34,211,238,0.7)", 
       boxShadow: "0 0 20px rgba(34,211,238,0.6)", 
-      y: -8, scale: 1.05,
+      scale: 1.05,
+      y: -8,
       duration: 0.4, 
       ease: "power2.out" 
     });
     
     // Phase 1: Hologram Lift
     gsap.to(".hologram-lift-wrapper", {
-      z: 80,
+      z: 50, // Nhô lên 50px
       filter: "brightness(1.5)",
       duration: 0.4,
       ease: "power2.out"
@@ -143,11 +150,38 @@ export default function ProductCard({ product }: { product: Product }) {
     });
   });
 
+  const handleMouseMove = contextSafe((e: React.MouseEvent<HTMLElement>) => {
+    if (!tiltRef.current) return;
+    const rect = tiltRef.current.getBoundingClientRect();
+    const x = e.clientX - rect.left;
+    const y = e.clientY - rect.top;
+    const centerX = rect.width / 2;
+    const centerY = rect.height / 2;
+    const rotateX = ((y - centerY) / centerY) * -15;
+    const rotateY = ((x - centerX) / centerX) * 15;
+
+    gsap.to(tiltRef.current, {
+      rotateX,
+      rotateY,
+      duration: 0.5,
+      ease: "power2.out"
+    });
+  });
+
   const handleMouseLeave = contextSafe(() => {
+    // Revert Tilt
+    if (tiltRef.current) {
+      gsap.to(tiltRef.current, {
+        rotateX: 0, rotateY: 0,
+        duration: 1, ease: "power3.out"
+      });
+    }
+
     gsap.to(".product-card-glass", { 
       borderColor: "rgba(6, 182, 212, 0.12)", 
       boxShadow: "none", 
-      y: 0, scale: 1,
+      scale: 1,
+      y: 0,
       duration: 0.4, 
       ease: "power2.out" 
     });
@@ -189,15 +223,24 @@ export default function ProductCard({ product }: { product: Product }) {
     <div ref={containerRef} className="relative w-full h-full p-[1px]" style={{ perspective: "1000px" }}>
       <div className="product-dashed absolute inset-0 border-[1px] border-dashed border-[var(--cyan-400)] pointer-events-none z-0 rounded-2xl opacity-0" style={{ willChange: "transform, opacity" }} />
       <article
-        className="product-card-glass dark-card group relative flex flex-col overflow-hidden h-full opacity-0"
+        ref={tiltRef}
+        className="product-card-glass dark-card group relative flex flex-col overflow-hidden h-full"
         style={{
           transformStyle: "preserve-3d",
           willChange: "transform, opacity, filter"
         }}
         onMouseEnter={handleMouseEnter}
         onMouseLeave={handleMouseLeave}
+        onMouseMove={handleMouseMove}
       >
       <HudCorners />
+      {/* Micro-text Metadata (Top Right) */}
+      <div 
+        className="absolute top-2 right-3 z-30 font-mono text-[8px] text-[var(--cyan-500)] tracking-widest pointer-events-none opacity-50 group-hover:opacity-100 transition-opacity"
+      >
+        [ NODE_ID: 0x{nodeId} ]<br/>
+        [ REV: v1.2 ]
+      </div>
       {/* ── Visual zone ── */}
       <div
         className="relative flex items-center justify-center overflow-hidden"
@@ -355,18 +398,28 @@ export default function ProductCard({ product }: { product: Product }) {
 
           {/* CTA row */}
           <div className="flex gap-2">
-            {/* Add to cart */}
+            {/* Add to cart progressing Dashed Button */}
             <button
               onClick={handleAddToCart}
-              className="flex flex-1 items-center justify-center gap-1.5 rounded-xl py-2.5 text-xs font-semibold transition-all duration-150"
+              className="relative flex flex-1 items-center justify-center gap-1.5 overflow-hidden py-2.5 text-xs font-semibold group/btn"
               style={{
-                background: added ? "rgba(6,182,212,0.15)" : cfg.accentBg,
                 color: added ? "var(--cyan-400)" : cfg.accent,
-                border: `1px solid ${added ? "rgba(6,182,212,0.30)" : cfg.accentBorder}`,
+                border: `1px dashed ${added ? "var(--cyan-300)" : "rgba(34, 211, 238, 0.3)"}`,
+                background: "transparent"
               }}
             >
-              {added ? <Check size={12} /> : <ShoppingCart size={12} />}
-              {added ? "Đã xác nhận!" : "Khởi tạo lệnh"}
+              {/* Progress Bar Background fill on hover */}
+              <div 
+                className="absolute inset-0 z-0 bg-[rgba(34,211,238,0.15)] transition-transform duration-500 origin-left"
+                style={{ transform: added ? "scaleX(1)" : "scaleX(0)", transformOrigin: "left" }}
+              />
+              <div 
+                className="absolute inset-0 z-0 bg-[rgba(34,211,238,0.1)] transition-transform duration-500 origin-left scale-x-0 group-hover/btn:scale-x-100 delay-75"
+              />
+              <span className="relative z-10 flex items-center gap-1.5 uppercase font-mono tracking-wider">
+                {added ? <Check size={12} /> : <ShoppingCart size={12} />}
+                {added ? "ĐÃ XÁC NHẬN" : "KHỞI TẠO LỆNH"}
+              </span>
             </button>
 
             {/* View detail */}

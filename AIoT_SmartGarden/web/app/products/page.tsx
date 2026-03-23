@@ -27,6 +27,15 @@ export default async function ProductsPage() {
 
   return (
     <main className="flex flex-col bg-transparent relative" style={{ minHeight: "100dvh" }}>
+      <style>{`
+        @keyframes portal-title {
+          0% { letter-spacing: 0.5em; opacity: 0; filter: blur(10px); transform: scale(1.05); }
+          100% { letter-spacing: -0.025em; opacity: 1; filter: blur(0); transform: scale(1); }
+        }
+        .animate-portal-title {
+          animation: portal-title 1.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+      `}</style>
 
       {/* ══════════════════════════════════════
           Hero Header
@@ -85,7 +94,7 @@ export default async function ProductsPage() {
 
               {/* Title */}
               <h1
-                className="text-4xl font-black leading-tight tracking-tight md:text-5xl lg:text-6xl"
+                className="animate-portal-title text-4xl font-black leading-tight tracking-tight md:text-5xl lg:text-6xl opacity-0"
                 style={{ color: "var(--text-primary)" }}
               >
                 Trang bị cho{" "}

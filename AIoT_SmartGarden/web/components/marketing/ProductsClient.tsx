@@ -12,6 +12,9 @@ import {
   X,
 } from "lucide-react";
 import ProductCard from "@/components/marketing/ProductCard";
+import gsap from "gsap";
+import { useGSAP } from "@gsap/react";
+import { useRef } from "react";
 
 type Product = {
   slug: string;
@@ -43,6 +46,7 @@ export default function ProductsClient({ products }: { products: Product[] }) {
   const [activeCategory, setActiveCategory] = useState("all");
   const [sortBy, setSortBy]                 = useState("default");
   const [sortOpen, setSortOpen]             = useState(false);
+  const containerRef                        = useRef<HTMLDivElement>(null);
 
   /* ── Filtered + sorted list ── */
   const displayed = useMemo(() => {
@@ -67,14 +71,39 @@ export default function ProductsClient({ products }: { products: Product[] }) {
     return list;
   }, [products, activeCategory, sortBy]);
 
-  /* ── Count per category ── */
   const countOf = (cat: string) =>
     cat === "all" ? products.length : products.filter((p) => p.category === cat).length;
 
   const activeSortLabel = SORT_OPTIONS.find((o) => o.value === sortBy)?.label ?? "Mặc định";
 
+  /* ── GSAP Animations ── */
+  useGSAP(() => {
+    // 1. Boot-up Sequence: Category buttons wireframe-to-glass
+    gsap.fromTo(".filter-btn",
+      { background: "transparent", opacity: 0, scale: 0.95 },
+      { opacity: 1, scale: 1, duration: 0.5, stagger: 0.1, ease: "power2.out" }
+    );
+  }, { scope: containerRef });
+
+  useGSAP(() => {
+    // 2. Grid Materialization: Products staggering in when 'displayed' changes
+    if (displayed.length > 0) {
+      gsap.fromTo(".product-card-wrap",
+        { opacity: 0, y: 30 },
+        { 
+          opacity: 1, 
+          y: 0, 
+          duration: 0.5, 
+          stagger: 0.1, 
+          ease: "back.out(1.2)", 
+          overwrite: true 
+        }
+      );
+    }
+  }, { scope: containerRef, dependencies: [displayed] });
+
   return (
-    <>
+    <div ref={containerRef} className="relative w-full">
       {/* ══════════════════════════════════════
           Filter + Sort bar (sticky)
       ══════════════════════════════════════ */}
@@ -97,7 +126,7 @@ export default function ProductsClient({ products }: { products: Product[] }) {
                 <button
                   key={value}
                   onClick={() => setActiveCategory(value)}
-                  className="flex shrink-0 items-center gap-2 rounded-full px-4 py-1.5 text-xs font-semibold transition-all duration-200"
+                  className="filter-btn flex shrink-0 items-center gap-2 rounded-full px-4 py-1.5 text-xs font-semibold transition-all duration-200 opacity-0"
                   style={
                     active
                       ? {
@@ -236,8 +265,7 @@ export default function ProductsClient({ products }: { products: Product[] }) {
             {displayed.map((product, i) => (
               <div
                 key={product.slug}
-                className="animate-fade-up"
-                style={{ animationDelay: `${i * 60}ms` }}
+                className="product-card-wrap opacity-0"
               >
                 <ProductCard product={product} />
               </div>
@@ -277,6 +305,6 @@ export default function ProductsClient({ products }: { products: Product[] }) {
           </div>
         )}
       </div>
-    </>
+    </div>
   );
 }
