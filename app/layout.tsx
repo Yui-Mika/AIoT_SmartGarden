@@ -1,5 +1,6 @@
 import './globals.css';
 import type { Metadata } from 'next';
+import { AppPreferencesProvider } from './providers';
 
 export const metadata: Metadata = {
   title: 'Veridian Lab',
@@ -12,7 +13,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en">
+    <html lang="en" suppressHydrationWarning>
       <head>
         {/* Nhúng Font chữ Manrope */}
         <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -22,8 +23,8 @@ export default function RootLayout({
         {/* Nhúng Thư viện Icon Material Symbols */}
         <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet" />
       </head>
-      <body className="font-['Manrope'] antialiased bg-[#f7f9fc]">
-        {children}
+      <body className="font-['Manrope'] antialiased">
+        <AppPreferencesProvider>{children}</AppPreferencesProvider>
       </body>
     </html>
   );

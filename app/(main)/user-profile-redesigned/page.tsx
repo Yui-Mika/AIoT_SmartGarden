@@ -41,19 +41,19 @@ export default function UserProfileRedesignedPage() {
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-8">
               <div className="space-y-2">
                 <label className="block text-[10px] font-bold uppercase tracking-widest text-on-surface-variant">Full Legal Name</label>
-                <input className="w-full bg-surface-container-low border-none rounded-lg py-3 px-4 text-sm focus:ring-2 focus:ring-primary/20" type="text" value="Dr. Alistair Thorne" />
+                <input className="w-full bg-surface-container-low border-none rounded-lg py-3 px-4 text-sm focus:ring-2 focus:ring-primary/20" type="text" defaultValue="Dr. Alistair Thorne" />
               </div>
               <div className="space-y-2">
                 <label className="block text-[10px] font-bold uppercase tracking-widest text-on-surface-variant">Research Unit</label>
-                <input className="w-full bg-surface-container-low border-none rounded-lg py-3 px-4 text-sm focus:ring-2 focus:ring-primary/20" type="text" value="Delta-7 Hydroponics Wing" />
+                <input className="w-full bg-surface-container-low border-none rounded-lg py-3 px-4 text-sm focus:ring-2 focus:ring-primary/20" type="text" defaultValue="Delta-7 Hydroponics Wing" />
               </div>
               <div className="space-y-2">
                 <label className="block text-[10px] font-bold uppercase tracking-widest text-on-surface-variant">Contact Email</label>
-                <input className="w-full bg-surface-container-low border-none rounded-lg py-3 px-4 text-sm focus:ring-2 focus:ring-primary/20" type="email" value="thorne.research@veridian-lab.io" />
+                <input className="w-full bg-surface-container-low border-none rounded-lg py-3 px-4 text-sm focus:ring-2 focus:ring-primary/20" type="email" defaultValue="thorne.research@veridian-lab.io" />
               </div>
               <div className="space-y-2">
                 <label className="block text-[10px] font-bold uppercase tracking-widest text-on-surface-variant">Phone (Encrypted)</label>
-                <input className="w-full bg-surface-container-low border-none rounded-lg py-3 px-4 text-sm focus:ring-2 focus:ring-primary/20" type="text" value="+1 (555) 942-0192" />
+                <input className="w-full bg-surface-container-low border-none rounded-lg py-3 px-4 text-sm focus:ring-2 focus:ring-primary/20" type="text" defaultValue="+1 (555) 942-0192" />
               </div>
             </div>
           </section>

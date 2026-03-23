@@ -63,9 +63,9 @@ export default function FullDiagnosticPage() {
   }, []);
 
   return (
-    <div className="bg-gray-100 p-8 min-h-screen">
-      <div className="max-w-2xl mx-auto bg-surface-container-lowest rounded shadow-lg p-8">
-        <h1 className="text-4xl font-bold text-green-600 mb-8">🌿 Complete Diagnostic Report</h1>
+    <div className="p-8 min-h-screen">
+      <div className="max-w-2xl mx-auto bg-gradient-to-br from-surface-container-lowest via-surface-container-low to-surface-container rounded-2xl shadow-[0_18px_50px_-24px_rgba(5,76,87,0.5)] border border-outline-variant/35 p-8">
+        <h1 className="text-4xl font-bold text-primary mb-8">Complete Diagnostic Report</h1>
         
         <div ref={diagnosticsRef} id="diagnostics" />
         
@@ -73,10 +73,10 @@ export default function FullDiagnosticPage() {
           <h2 className="text-xl font-bold mb-4">Navigation Tests</h2>
           <p className="mb-4">Click these buttons to test navigation:</p>
           <div className="flex flex-wrap gap-2">
-            <button onClick={() => testClick('dashboard')} className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600">Test Dashboard</button>
-            <button onClick={() => testClick('control')} className="px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600">Test Control</button>
-            <button onClick={() => testClick('plant-doctor')} className="px-4 py-2 bg-purple-500 text-white rounded hover:bg-purple-600">Test Plant Doctor</button>
-            <button onClick={() => testClick('analytics')} className="px-4 py-2 bg-orange-500 text-white rounded hover:bg-orange-600">Test Analytics</button>
+            <button onClick={() => testClick('dashboard')} className="px-4 py-2 bg-secondary text-on-secondary rounded-lg hover:brightness-110">Test Dashboard</button>
+            <button onClick={() => testClick('control')} className="px-4 py-2 bg-primary text-on-primary rounded-lg hover:brightness-110">Test Control</button>
+            <button onClick={() => testClick('plant-doctor')} className="px-4 py-2 bg-tertiary text-on-tertiary rounded-lg hover:brightness-110">Test Plant Doctor</button>
+            <button onClick={() => testClick('analytics')} className="px-4 py-2 bg-primary-dark text-on-primary rounded-lg hover:brightness-110">Test Analytics</button>
           </div>
           <div ref={clickResultRef} id="click-result" className="mt-4" />
         </div>
@@ -85,12 +85,12 @@ export default function FullDiagnosticPage() {
           <h2 className="text-xl font-bold mb-4">Page Links</h2>
           <p className="mb-4">Or click to directly visit pages:</p>
           <ul className="space-y-2">
-            <li><Link href="/dashboard" className="text-blue-600 hover:underline">→ Dashboard</Link></li>
-            <li><Link href="/control" className="text-blue-600 hover:underline">→ Control</Link></li>
-            <li><Link href="/plant-doctor" className="text-blue-600 hover:underline">→ Plant Doctor</Link></li>
-            <li><Link href="/analytics" className="text-blue-600 hover:underline">→ Analytics</Link></li>
-            <li><Link href="/settings" className="text-blue-600 hover:underline">→ Settings</Link></li>
-            <li><Link href="/user-profile-redesigned" className="text-blue-600 hover:underline">→ User Profile</Link></li>
+            <li><Link href="/dashboard" className="text-secondary hover:underline">→ Dashboard</Link></li>
+            <li><Link href="/control" className="text-secondary hover:underline">→ Control</Link></li>
+            <li><Link href="/plant-doctor" className="text-secondary hover:underline">→ Plant Doctor</Link></li>
+            <li><Link href="/analytics" className="text-secondary hover:underline">→ Analytics</Link></li>
+            <li><Link href="/settings" className="text-secondary hover:underline">→ Settings</Link></li>
+            <li><Link href="/user-profile-redesigned" className="text-secondary hover:underline">→ User Profile</Link></li>
           </ul>
         </div>
       </div>

@@ -1,48 +1,35 @@
 'use client'; // Bắt buộc phải có để dùng onClick và onChange
 
 import './style.css';
-import { useEffect } from 'react';
+import { useState } from 'react';
 import Link from 'next/link';
+import { useAppPreferences } from '../../providers';
 
 export default function SettingsPage() {
-  // --- CHUYỂN LOGIC TỪ THẺ SCRIPT LÊN ĐÂY ---
-  
-  const selectLanguage = (lang: string) => {
-    localStorage.setItem('language', lang);
-    
-    // Cập nhật giao diện nút radio
-    const enRadio = document.getElementById('en-radio');
-    const viRadio = document.getElementById('vi-radio');
-    
-    if (enRadio && viRadio) {
-      enRadio.querySelector('div')?.classList.toggle('hidden', lang !== 'en');
-      viRadio.querySelector('div')?.classList.toggle('hidden', lang !== 'vi');
+  const { language, setLanguage, theme, setTheme, t } = useAppPreferences();
+  const [notifications, setNotifications] = useState(() => {
+    if (typeof window === 'undefined') {
+      return {
+        email: true,
+        push: true,
+        sound: true,
+      };
     }
-  };
 
-  const setTheme = (theme: string) => {
-    localStorage.setItem('appTheme', theme);
-    if (theme === 'dark') {
-      document.documentElement.classList.add('dark');
-    } else {
-      document.documentElement.classList.remove('dark');
-    }
-  };
+    return {
+      email: localStorage.getItem('notification_email') !== 'false',
+      push: localStorage.getItem('notification_push') !== 'false',
+      sound: localStorage.getItem('notification_sound') !== 'false',
+    };
+  });
 
   const setNotification = (type: string, enabled: boolean) => {
     localStorage.setItem(`notification_${type}`, String(enabled));
+    setNotifications((prev) => ({ ...prev, [type]: enabled }));
   };
 
-  // useEffect thay thế cho sự kiện 'DOMContentLoaded' của HTML thuần
-  useEffect(() => {
-    // Khởi tạo Theme
-    const savedTheme = localStorage.getItem('appTheme') || 'light';
-    setTheme(savedTheme);
-    
-    // Khởi tạo Language
-    const savedLang = localStorage.getItem('language') || 'en';
-    selectLanguage(savedLang);
-  }, []);
+  const contactSupportMail = 'mailto:support@veridian-lab.io?subject=Veridian%20Lab%20Support%20Request';
+  const liveChatMail = 'mailto:support@veridian-lab.io?subject=Live%20Chat%20Request&body=Hi%20Veridian%20Lab%20team%2C%20I%20need%20help%20with%3A';
 
   return (
     <>
@@ -69,12 +56,12 @@ export default function SettingsPage() {
                 </div>
                 <div>
                   <p className="font-semibold text-sm text-on-surface group-hover:text-blue-600 transition-colors">Dashboard</p>
-                  <p className="text-xs text-on-surface-variant/60">Back</p>
+                  <p className="text-xs text-on-surface-variant/85">Back</p>
                 </div>
               </div>
             </Link>
 
-            <Link href="/user-profile" className="nature-card block relative overflow-hidden group cursor-pointer hover:shadow-2xl">
+            <Link href="/user-profile-redesigned" className="nature-card block relative overflow-hidden group cursor-pointer hover:shadow-2xl">
               <div className="absolute inset-0 bg-gradient-to-br from-emerald-400/20 to-green-400/10 group-hover:from-emerald-400/30 group-hover:to-green-400/20 transition-all duration-300" />
               <div className="relative p-4 flex items-center gap-3">
                 <div className="p-3 rounded-xl bg-gradient-to-br from-emerald-500 to-green-500 flex items-center justify-center group-hover:shadow-lg transition-all">
@@ -82,7 +69,7 @@ export default function SettingsPage() {
                 </div>
                 <div>
                   <p className="font-semibold text-sm text-on-surface group-hover:text-emerald-600 transition-colors">Profile</p>
-                  <p className="text-xs text-on-surface-variant/60">Account</p>
+                  <p className="text-xs text-on-surface-variant/85">Account</p>
                 </div>
               </div>
             </Link>
@@ -95,7 +82,7 @@ export default function SettingsPage() {
                 </div>
                 <div>
                   <p className="font-semibold text-sm text-on-surface group-hover:text-orange-600 transition-colors">Control</p>
-                  <p className="text-xs text-on-surface-variant/60">System</p>
+                  <p className="text-xs text-on-surface-variant/85">System</p>
                 </div>
               </div>
             </Link>
@@ -108,7 +95,7 @@ export default function SettingsPage() {
                 </div>
                 <div>
                   <p className="font-semibold text-sm text-on-surface group-hover:text-cyan-600 transition-colors">Analytics</p>
-                  <p className="text-xs text-on-surface-variant/60">Data</p>
+                  <p className="text-xs text-on-surface-variant/85">Data</p>
                 </div>
               </div>
             </Link>
@@ -118,39 +105,39 @@ export default function SettingsPage() {
           <div className="space-y-6">
             {/* Language Settings */}
             <section className="nature-card relative overflow-hidden">
-              <div className="absolute inset-0 bg-gradient-to-br from-blue-400/10 to-cyan-400/10" />
+              <div className="absolute inset-0 settings-section-overlay" />
               <div className="relative p-8">
                 <div className="flex items-center gap-3 mb-6">
                   <div className="p-3 rounded-xl bg-gradient-to-br from-cyan-400 to-blue-500 flex items-center justify-center">
                     <span className="material-symbols-outlined text-2xl text-white">language</span>
                   </div>
-                  <h2 className="text-xl font-bold font-headline bg-gradient-to-r from-blue-600 to-cyan-600 bg-clip-text text-transparent">Language</h2>
+                  <h2 className="text-xl font-bold font-headline text-on-surface">{t('language')}</h2>
                 </div>
                 <div className="space-y-4">
-                  <div className="flex items-center justify-between p-4 rounded-xl bg-gradient-to-r from-cyan-100 to-blue-50 hover:from-cyan-200 hover:to-blue-100 transition-all cursor-pointer group border border-cyan-200/50 hover:border-cyan-400/50" onClick={() => selectLanguage('en')}>
+                  <div className="settings-option" onClick={() => setLanguage('en')}>
                     <div className="flex items-center gap-4">
                       <div id="en-radio" className="w-5 h-5 rounded-full border-2 border-cyan-500 flex items-center justify-center transition-all">
-                        <div className="w-2.5 h-2.5 rounded-full bg-cyan-500 hidden" />
+                        <div className={`w-2.5 h-2.5 rounded-full bg-cyan-500 ${language === 'en' ? '' : 'hidden'}`} />
                       </div>
                       <div>
-                        <p className="font-bold text-on-surface">English</p>
-                        <p className="text-sm text-on-surface-variant/60">English (US)</p>
+                        <p className="font-bold text-on-surface">{t('english')}</p>
+                        <p className="text-sm text-on-surface-variant/85">English (US)</p>
                       </div>
                     </div>
-                    <span className="material-symbols-outlined text-cyan-600 opacity-0 group-hover:opacity-100 transition-opacity">check_circle</span>
+                    <span className={`material-symbols-outlined text-secondary transition-opacity ${language === 'en' ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'}`}>check_circle</span>
                   </div>
 
-                  <div className="flex items-center justify-between p-4 rounded-xl bg-gradient-to-r from-cyan-100 to-blue-50 hover:from-cyan-200 hover:to-blue-100 transition-all cursor-pointer group border border-cyan-200/50 hover:border-cyan-400/50" onClick={() => selectLanguage('vi')}>
+                  <div className="settings-option" onClick={() => setLanguage('vi')}>
                     <div className="flex items-center gap-4">
                       <div id="vi-radio" className="w-5 h-5 rounded-full border-2 border-cyan-500 flex items-center justify-center transition-all">
-                        <div className="w-2.5 h-2.5 rounded-full bg-cyan-500 hidden" />
+                        <div className={`w-2.5 h-2.5 rounded-full bg-cyan-500 ${language === 'vi' ? '' : 'hidden'}`} />
                       </div>
                       <div>
-                        <p className="font-bold text-on-surface">Tiếng Việt</p>
-                        <p className="text-sm text-on-surface-variant/60">Vietnamese</p>
+                        <p className="font-bold text-on-surface">{t('vietnamese')}</p>
+                        <p className="text-sm text-on-surface-variant/85">Vietnamese</p>
                       </div>
                     </div>
-                    <span className="material-symbols-outlined text-cyan-600 opacity-0 group-hover:opacity-100 transition-opacity">check_circle</span>
+                    <span className={`material-symbols-outlined text-secondary transition-opacity ${language === 'vi' ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'}`}>check_circle</span>
                   </div>
                 </div>
               </div>
@@ -158,36 +145,36 @@ export default function SettingsPage() {
 
             {/* Theme Settings */}
             <section className="nature-card relative overflow-hidden">
-              <div className="absolute inset-0 bg-gradient-to-br from-purple-400/10 to-pink-400/10" />
+              <div className="absolute inset-0 settings-section-overlay" />
               <div className="relative p-8">
                 <div className="flex items-center gap-3 mb-6">
                   <div className="p-3 rounded-xl bg-gradient-to-br from-purple-400 to-pink-500 flex items-center justify-center">
                     <span className="material-symbols-outlined text-2xl text-white">palette</span>
                   </div>
-                  <h2 className="text-xl font-bold font-headline bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">Theme</h2>
+                  <h2 className="text-xl font-bold font-headline text-on-surface">{t('theme')}</h2>
                 </div>
 
                 <div className="space-y-3">
-                  <label className="flex items-center gap-4 p-4 rounded-xl bg-gradient-to-r from-purple-100 to-pink-50 hover:from-purple-200 hover:to-pink-100 transition-all cursor-pointer border border-purple-200/50 hover:border-purple-400/50">
+                  <label className="settings-option">
                     <div className="flex-1">
-                      <p className="font-bold text-on-surface">Light Mode</p>
-                      <p className="text-sm text-on-surface-variant/60">Bright and clean interface</p>
+                      <p className="font-bold text-on-surface">{t('lightMode')}</p>
+                      <p className="text-sm text-on-surface-variant/85">Bright and clean interface</p>
                     </div>
-                    <label className="switch">
-                      <input type="radio" name="theme" value="light" defaultChecked onChange={() => setTheme('light')} />
+                    <div className="switch">
+                      <input type="radio" name="theme" value="light" checked={theme === 'light'} onChange={() => setTheme('light')} />
                       <span className="slider" />
-                    </label>
+                    </div>
                   </label>
 
-                  <label className="flex items-center gap-4 p-4 rounded-xl bg-gradient-to-r from-purple-100 to-pink-50 hover:from-purple-200 hover:to-pink-100 transition-all cursor-pointer border border-purple-200/50 hover:border-purple-400/50">
+                  <label className="settings-option">
                     <div className="flex-1">
-                      <p className="font-bold text-on-surface">Dark Mode</p>
-                      <p className="text-sm text-on-surface-variant/60">Easy on the eyes at night</p>
+                      <p className="font-bold text-on-surface">{t('darkMode')}</p>
+                      <p className="text-sm text-on-surface-variant/85">Easy on the eyes at night</p>
                     </div>
-                    <label className="switch">
-                      <input type="radio" name="theme" value="dark" onChange={() => setTheme('dark')} />
+                    <div className="switch">
+                      <input type="radio" name="theme" value="dark" checked={theme === 'dark'} onChange={() => setTheme('dark')} />
                       <span className="slider" />
-                    </label>
+                    </div>
                   </label>
                 </div>
               </div>
@@ -195,48 +182,83 @@ export default function SettingsPage() {
 
             {/* Notification Settings */}
             <section className="nature-card relative overflow-hidden">
-              <div className="absolute inset-0 bg-gradient-to-br from-orange-400/10 to-amber-400/10" />
+              <div className="absolute inset-0 settings-section-overlay" />
               <div className="relative p-8">
                 <div className="flex items-center gap-3 mb-6">
                   <div className="p-3 rounded-xl bg-gradient-to-br from-orange-400 to-amber-500 flex items-center justify-center">
                     <span className="material-symbols-outlined text-2xl text-white">notifications</span>
                   </div>
-                  <h2 className="text-xl font-bold font-headline bg-gradient-to-r from-orange-600 to-amber-600 bg-clip-text text-transparent">Notifications</h2>
+                  <h2 className="text-xl font-bold font-headline text-on-surface">{t('notifications')}</h2>
                 </div>
 
                 <div className="space-y-3">
-                  <label className="flex items-center gap-4 p-4 rounded-xl bg-gradient-to-r from-orange-100 to-amber-50 hover:from-orange-200 hover:to-amber-100 transition-all cursor-pointer border border-orange-200/50 hover:border-orange-400/50">
+                  <label className="settings-option">
                     <div className="flex-1">
-                      <p className="font-bold text-on-surface">Email</p>
-                      <p className="text-sm text-on-surface-variant/60">Get notifications via email</p>
+                      <p className="font-bold text-on-surface">{t('email')}</p>
+                      <p className="text-sm text-on-surface-variant/85">Get notifications via email</p>
                     </div>
-                    <label className="switch">
-                      <input type="checkbox" defaultChecked onChange={(e) => setNotification('email', e.target.checked)} />
+                    <div className="switch">
+                      <input type="checkbox" checked={notifications.email} onChange={(e) => setNotification('email', e.target.checked)} />
                       <span className="slider" />
-                    </label>
+                    </div>
                   </label>
 
-                  <label className="flex items-center gap-4 p-4 rounded-xl bg-gradient-to-r from-orange-100 to-amber-50 hover:from-orange-200 hover:to-amber-100 transition-all cursor-pointer border border-orange-200/50 hover:border-orange-400/50">
+                  <label className="settings-option">
                     <div className="flex-1">
-                      <p className="font-bold text-on-surface">Push Notifications</p>
-                      <p className="text-sm text-on-surface-variant/60">Browser push notifications</p>
+                      <p className="font-bold text-on-surface">{t('pushNotifications')}</p>
+                      <p className="text-sm text-on-surface-variant/85">Browser push notifications</p>
                     </div>
-                    <label className="switch">
-                      <input type="checkbox" defaultChecked onChange={(e) => setNotification('push', e.target.checked)} />
+                    <div className="switch">
+                      <input type="checkbox" checked={notifications.push} onChange={(e) => setNotification('push', e.target.checked)} />
                       <span className="slider" />
-                    </label>
+                    </div>
                   </label>
 
-                  <label className="flex items-center gap-4 p-4 rounded-xl bg-gradient-to-r from-orange-100 to-amber-50 hover:from-orange-200 hover:to-amber-100 transition-all cursor-pointer border border-orange-200/50 hover:border-orange-400/50">
+                  <label className="settings-option">
                     <div className="flex-1">
-                      <p className="font-bold text-on-surface">Sound Alerts</p>
-                      <p className="text-sm text-on-surface-variant/60">Play sound for critical alerts</p>
+                      <p className="font-bold text-on-surface">{t('soundAlerts')}</p>
+                      <p className="text-sm text-on-surface-variant/85">Play sound for critical alerts</p>
                     </div>
-                    <label className="switch">
-                      <input type="checkbox" defaultChecked onChange={(e) => setNotification('sound', e.target.checked)} />
+                    <div className="switch">
+                      <input type="checkbox" checked={notifications.sound} onChange={(e) => setNotification('sound', e.target.checked)} />
                       <span className="slider" />
-                    </label>
+                    </div>
                   </label>
+                </div>
+              </div>
+            </section>
+
+            <section className="nature-card relative overflow-hidden">
+              <div className="absolute inset-0 settings-section-overlay" />
+              <div className="relative p-8">
+                <div className="flex items-center gap-3 mb-6">
+                  <div className="p-3 rounded-xl bg-gradient-to-br from-teal-500 to-green-500 flex items-center justify-center">
+                    <span className="material-symbols-outlined text-2xl text-white">help</span>
+                  </div>
+                  <h2 className="text-xl font-bold font-headline text-on-surface">{t('helpAndSupport')}</h2>
+                </div>
+                <p className="text-sm text-on-surface-variant/90 mb-5">{t('supportDescription')}</p>
+                <div className="mb-5 rounded-xl border border-primary/20 bg-primary/8 px-4 py-3">
+                  <div className="flex items-center gap-2 mb-1">
+                    <span className="w-2.5 h-2.5 rounded-full bg-primary animate-pulse" />
+                    <p className="text-sm font-semibold text-on-surface">{t('supportOnline')}</p>
+                  </div>
+                  <p className="text-xs text-on-surface-variant/90">{t('supportHours')}</p>
+                  <p className="text-xs text-on-surface-variant/90">{t('supportAvgResponse')}</p>
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                  <a href={liveChatMail} className="support-action-card" target="_blank" rel="noreferrer">
+                    <p className="font-bold text-on-surface">{t('liveChat')}</p>
+                    <p className="text-xs text-on-surface-variant/85 mt-1">Avg response: &lt; 2 min</p>
+                  </a>
+                  <Link href="/full_diagnostic" className="support-action-card">
+                    <p className="font-bold text-on-surface">{t('knowledgeBase')}</p>
+                    <p className="text-xs text-on-surface-variant/85 mt-1">Setup guides and troubleshooting</p>
+                  </Link>
+                  <a href={contactSupportMail} className="support-action-card">
+                    <p className="font-bold text-on-surface">{t('contactSupport')}</p>
+                    <p className="text-xs text-on-surface-variant/85 mt-1">support@veridian-lab.io</p>
+                  </a>
                 </div>
               </div>
             </section>
@@ -245,12 +267,12 @@ export default function SettingsPage() {
             <section className="bg-gradient-to-r from-primary/10 to-primary-light/5 rounded-2xl p-8 border border-primary/20">
               <div className="flex items-center gap-3 mb-6">
                 <span className="material-symbols-outlined text-2xl text-primary">info</span>
-                <h2 className="text-xl font-bold font-headline">About</h2>
+                <h2 className="text-xl font-bold font-headline">{t('about')}</h2>
               </div>
 
               <div className="space-y-3 text-sm">
                 <div className="flex justify-between items-center">
-                  <span className="text-on-surface-variant">Version</span>
+                  <span className="text-on-surface-variant">{t('version')}</span>
                   <span className="font-bold text-on-surface">1.0.0</span>
                 </div>
                 <div className="flex justify-between items-center">
@@ -265,10 +287,10 @@ export default function SettingsPage() {
           {/* Action Buttons */}
           <div className="mt-10 flex gap-4">
             <button className="flex-1 py-3 bg-primary text-white rounded-xl font-bold uppercase tracking-wide hover:brightness-110 transition-all">
-              Save Changes
+              {t('saveChanges')}
             </button>
             <button className="flex-1 py-3 bg-surface-container-high text-on-surface rounded-xl font-bold uppercase tracking-wide hover:bg-surface-container-highest transition-all">
-              Logout
+              {t('logout')}
             </button>
           </div>
         </div>
